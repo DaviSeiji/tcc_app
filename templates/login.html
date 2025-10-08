@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Agenda Cirúrgica</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">Agenda Cirúrgica</div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/cadastro" class="btn-primary">Cadastro</a>
+        </div>
+    </nav>
+
+    <!-- Login Section -->
+    <section class="login-section">
+        <div class="form-container">
+            <h1>Login</h1>
+            <form id="login-form">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+
+                <label for="senha">Senha</label>
+                <input type="password" id="senha" name="senha" required>
+
+                <button type="submit" class="btn-primary">Entrar</button>
+            </form>
+            <p>Não tem conta? <a href="/cadastro" style="color:#1dd1a1;">Cadastre-se</a></p>
+        </div>
+    </section>
+
+    <!-- JS para enviar login -->
+    <script>
+        const form = document.getElementById('login-form');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                email: form.email.value,
+                senha: form.senha.value
+            };
+            // Ajuste a URL conforme sua rota de login da API
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            if (res.ok) {
+                alert('Login realizado com sucesso!');
+                window.location.href = '/'; // redireciona para página inicial
+            } else {
+                const err = await res.json();
+                alert(err.error);
+            }
+        });
+    </script>
+</body>
+</html>

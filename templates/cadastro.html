@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro - Agenda Cirúrgica</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <!-- Navbar (igual à página principal) -->
+    <nav class="navbar">
+        <div class="logo">Agenda Cirúrgica</div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/login" class="btn-primary">Login</a>
+        </div>
+    </nav>
+
+    <!-- Cadastro Section -->
+    <section class="cadastro-section">
+        <div class="form-container">
+            <h1>Cadastro</h1>
+            <form id="cadastro-form">
+                <label for="nome">Nome</label>
+                <input type="text" id="nome" name="nome" required>
+
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+
+                <label for="senha">Senha</label>
+                <input type="password" id="senha" name="senha" required>
+
+                <button type="submit" class="btn-primary">Cadastrar</button>
+            </form>
+            <p>Já tem conta? <a href="/login" style="color:#1dd1a1;">Faça login</a></p>
+        </div>
+    </section>
+
+    <!-- JS para enviar dados para a API -->
+    <script>
+        const form = document.getElementById('cadastro-form');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                nome: form.nome.value,
+                email: form.email.value,
+                senha: form.senha.value
+            };
+            const res = await fetch('/api/usuarios', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            if (res.ok) {
+                alert('Cadastro realizado com sucesso!');
+                window.location.href = '/login'; // redireciona para login
+            } else {
+                const err = await res.json();
+                alert(err.error);
+            }
+        });
+    </script>
+</body>
+</html>

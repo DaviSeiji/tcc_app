@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda Cirúrgica</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">Agenda Cirúrgica</div>
+        <div class="nav-links">
+            <a href="/login">Login</a>
+            <a href="/cadastro" class="btn-primary">Cadastro</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Organize suas cirurgias de forma eficiente</h1>
+            <p>Visualize e gerencie salas, horários e características de cirurgias em um único lugar. Simplifique a rotina do seu hospital.</p>
+            <a href="/cadastro" class="btn-primary btn-hero">Comece Agora</a>
+        </div>
+    </section>
+</body>
+</html>
