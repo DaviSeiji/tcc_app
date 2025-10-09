@@ -1,11 +1,8 @@
-/* Reset e fontes */
-html, body {
+body, html {
     margin: 0;
     padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     height: 100%;
-    background: linear-gradient(135deg, #111, #222); /* gradiente da página inteira */
-    color: white;
 }
 
 /* Navbar */
@@ -14,11 +11,8 @@ html, body {
     justify-content: space-between;
     align-items: center;
     padding: 20px 50px;
-    background-color: rgba(17, 17, 17, 0.9); /* ligeiramente transparente para ver o gradiente atrás */
+    background-color: #111;
     color: white;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
 }
 
 .navbar .logo {
@@ -45,16 +39,17 @@ html, body {
     background-color: #10ac84;
 }
 
-/* Hero Section */
+/* Hero */
 .hero {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    justify-content: flex-start; /* Substitui center por flex-start */
     align-items: center;
-    padding: 50px;
-}
-
-.hero-content {
-    max-width: 50%;
+    padding: 30px 50px; /* reduz padding superior */
+    min-height: calc(100vh - 80px);
+    background: linear-gradient(135deg, #111, #222);
+    color: white;
+    text-align: center;
 }
 
 .hero-content h1 {
@@ -69,10 +64,66 @@ html, body {
     color: #ccc;
 }
 
-/* Botões */
-.btn-primary {
+.formulario input {
+    width: 100%;
+    margin: 10px 0;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+}
+
+.formulario button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
     background-color: #1dd1a1;
     color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.formulario button:hover {
+    background-color: #10ac84;
+}
+
+.mensagens p.sucesso {
+    color: #4caf50;
+}
+
+.mensagens p.erro {
+    color: #ff4c4c;
+}
+
+/* Home buttons */
+.botoes-home a {
+    display: inline-block;
+    background-color: #1dd1a1;
+    color: white;
+    padding: 15px 30px;
+    margin: 10px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.botoes-home a:hover {
+    background-color: #10ac84;
+}
+
+/* Logo como link */
+.logo-link {
+    text-decoration: none;
+    color: #1dd1a1;
+    font-weight: bold;
+}
+
+/* Botão branco para Comece Agora */
+.btn-hero-white {
+    background-color: white;
+    color: #111;
     text-decoration: none;
     padding: 15px 30px;
     font-weight: bold;
@@ -80,122 +131,21 @@ html, body {
     transition: all 0.3s ease;
 }
 
-.btn-primary:hover {
-    background-color: #10ac84;
-    transform: translateY(-3px);
+.btn-hero-white:hover {
+    background-color: #f0f0f0;
 }
 
-/* Imagem do Hero */
-.hero-image img {
-    max-width: 500px;
-    border-radius: 15px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+/* Botão clean estilo link com underline */
+.btn-link {
+    display: inline-block;
+    color: #1dd1a1;       /* cor da paleta */
+    text-decoration: underline;
+    font-weight: bold;
+    margin-bottom: 20px;
+    transition: 0.3s;
 }
 
-/* Responsividade */
-@media (max-width: 900px) {
-    .hero {
-        flex-direction: column;
-        text-align: center;
-    }
-
-    .hero-content {
-        max-width: 100%;
-        margin-bottom: 30px;
-    }
-
-    .hero-image img {
-        max-width: 100%;
-    }
-}
-
-
-/* Cadastro Section */
-.cadastro-section {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: calc(100vh - 80px); /* altura da página menos navbar */
-    padding: 50px 20px;
-}
-
-.form-container {
-    width: 100%;
-    max-width: 400px;
-    background-color: rgba(17,17,17,0.9);
-    padding: 40px;
-    border-radius: 15px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    color: white;
-}
-
-.form-container h1 {
-    text-align: center;
-    margin-bottom: 30px;
-    color: #1dd1a1;
-}
-
-.form-container label {
-    display: block;
-    margin-bottom: 5px;
-    margin-top: 15px;
-}
-
-.form-container input {
-    width: 100%;
-    padding: 10px;
-    border-radius: 8px;
-    border: none;
-    margin-bottom: 10px;
-}
-
-.form-container button {
-    width: 100%;
-    padding: 12px;
-    margin-top: 15px;
-}
-
-/* Login Section */
-.login-section {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: calc(100vh - 80px); /* altura da página menos navbar */
-    padding: 50px 20px;
-}
-
-.form-container {
-    width: 100%;
-    max-width: 400px;
-    background-color: rgba(17,17,17,0.9);
-    padding: 40px;
-    border-radius: 15px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    color: white;
-}
-
-.form-container h1 {
-    text-align: center;
-    margin-bottom: 30px;
-    color: #1dd1a1;
-}
-
-.form-container label {
-    display: block;
-    margin-bottom: 5px;
-    margin-top: 15px;
-}
-
-.form-container input {
-    width: 100%;
-    padding: 10px;
-    border-radius: 8px;
-    border: none;
-    margin-bottom: 10px;
-}
-
-.form-container button {
-    width: 100%;
-    padding: 12px;
-    margin-top: 15px;
+.btn-link:hover {
+    color: #10ac84;       /* muda levemente a cor no hover */
+    text-decoration: none; /* tira underline ao passar o mouse */
 }

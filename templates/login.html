@@ -9,53 +9,35 @@
 <body>
     <!-- Navbar -->
     <nav class="navbar">
-        <div class="logo">Agenda Cirúrgica</div>
+        <div class="logo">
+            <a href="{{ url_for('usuario.pagina_inicial') }}" class="logo-link">Agenda Cirúrgica</a>
+        </div>
         <div class="nav-links">
-            <a href="/">Home</a>
+            <a href="/login">Login</a>
             <a href="/cadastro" class="btn-primary">Cadastro</a>
         </div>
     </nav>
 
-    <!-- Login Section -->
-    <section class="login-section">
-        <div class="form-container">
+    <!-- Form Section -->
+    <section class="hero">
+        <div class="hero-content">
             <h1>Login</h1>
-            <form id="login-form">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required>
-
-                <label for="senha">Senha</label>
-                <input type="password" id="senha" name="senha" required>
-
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                <div class="mensagens">
+                  {% for categoria, msg in messages %}
+                    <p class="{{ categoria }}">{{ msg }}</p>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            {% endwith %}
+            <form action="{{ url_for('usuario.login_usuario') }}" method="POST" class="formulario">
+                <input type="email" name="email" placeholder="E-mail" required>
+                <input type="password" name="senha" placeholder="Senha" required>
                 <button type="submit" class="btn-primary">Entrar</button>
             </form>
-            <p>Não tem conta? <a href="/cadastro" style="color:#1dd1a1;">Cadastre-se</a></p>
+            <p>Não tem conta? <a href="{{ url_for('usuario.pagina_cadastro') }}">Cadastre-se</a></p>
         </div>
     </section>
-
-    <!-- JS para enviar login -->
-    <script>
-        const form = document.getElementById('login-form');
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const data = {
-                email: form.email.value,
-                senha: form.senha.value
-            };
-            // Ajuste a URL conforme sua rota de login da API
-            const res = await fetch('/api/login', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(data)
-            });
-            if (res.ok) {
-                alert('Login realizado com sucesso!');
-                window.location.href = '/'; // redireciona para página inicial
-            } else {
-                const err = await res.json();
-                alert(err.error);
-            }
-        });
-    </script>
 </body>
 </html>

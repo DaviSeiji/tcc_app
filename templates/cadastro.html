@@ -7,58 +7,38 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <!-- Navbar (igual à página principal) -->
+    <!-- Navbar -->
     <nav class="navbar">
-        <div class="logo">Agenda Cirúrgica</div>
+        <div class="logo">
+            <a href="{{ url_for('usuario.pagina_inicial') }}" class="logo-link">Agenda Cirúrgica</a>
+        </div>
         <div class="nav-links">
-            <a href="/">Home</a>
-            <a href="/login" class="btn-primary">Login</a>
+            <a href="/login">Login</a>
+            <a href="/cadastro" class="btn-primary">Cadastro</a>
         </div>
     </nav>
 
-    <!-- Cadastro Section -->
-    <section class="cadastro-section">
-        <div class="form-container">
-            <h1>Cadastro</h1>
-            <form id="cadastro-form">
-                <label for="nome">Nome</label>
-                <input type="text" id="nome" name="nome" required>
-
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required>
-
-                <label for="senha">Senha</label>
-                <input type="password" id="senha" name="senha" required>
-
+    <!-- Form Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Crie sua conta</h1>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                <div class="mensagens">
+                  {% for categoria, msg in messages %}
+                    <p class="{{ categoria }}">{{ msg }}</p>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            {% endwith %}
+            <form action="{{ url_for('usuario.criar_usuario') }}" method="POST" class="formulario">
+                <input type="text" name="nome" placeholder="Nome" required>
+                <input type="email" name="email" placeholder="E-mail" required>
+                <input type="password" name="senha" placeholder="Senha" required>
                 <button type="submit" class="btn-primary">Cadastrar</button>
             </form>
-            <p>Já tem conta? <a href="/login" style="color:#1dd1a1;">Faça login</a></p>
+            <p>Já tem uma conta? <a href="{{ url_for('usuario.pagina_login') }}">Faça login</a></p>
         </div>
     </section>
-
-    <!-- JS para enviar dados para a API -->
-    <script>
-        const form = document.getElementById('cadastro-form');
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const data = {
-                nome: form.nome.value,
-                email: form.email.value,
-                senha: form.senha.value
-            };
-            const res = await fetch('/api/usuarios', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(data)
-            });
-            if (res.ok) {
-                alert('Cadastro realizado com sucesso!');
-                window.location.href = '/login'; // redireciona para login
-            } else {
-                const err = await res.json();
-                alert(err.error);
-            }
-        });
-    </script>
 </body>
 </html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cirurgias - Agenda Cirúrgica</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">
+            <a href="{{ url_for('usuario.home') }}" class="logo-link">Agenda Cirúrgica</a>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('cirurgia.listar_cirurgias_usuario') }}">Cirurgias</a>
+            <a href="#">Salas</a>
+            <a href="#">Agendamento</a>
+            <a href="#">Dados</a>
+            <a href="{{ url_for('usuario.logout') }}" class="btn-primary">Sair</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Cirurgias</h1>
+
+            <a href="{{ url_for('cirurgia.adicionar_cirurgia') }}" class="btn-link">Adicionar Cirurgia</a>
+
+            <table class="tabela-cirurgias">
+                <thead>
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Plano</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in cirurgias %}
+                    <tr>
+                        <td>{{ c.tipo }}</td>
+                        <td>{{ c.plano }}</td>
+                        <td>{{ c.status }}</td>
+                        <td><a href="{{ url_for('cirurgia.ver_cirurgia', id=c.id) }}" class="btn-primary">Ver</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</body>
+</html>

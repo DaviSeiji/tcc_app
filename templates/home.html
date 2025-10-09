@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Agenda Cirúrgica</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">
+            <a href="{{ url_for('usuario.pagina_inicial') }}" class="logo-link">Agenda Cirúrgica</a>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('cirurgia.listar_cirurgias_usuario') }}">Cirurgias</a>
+            <a href="#">Salas</a>
+            <a href="#">Agendamento</a>
+            <a href="#">Dados</a>
+            <a href="{{ url_for('usuario.logout') }}" class="btn-primary">Sair</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Bem-vindo(a), {{ session.get('usuario_nome') }}</h1>
+            <p>Escolha uma opção abaixo para começar a gerenciar suas cirurgias:</p>
+            <div class="botoes-home">
+                <a href="{{ url_for('cirurgia.listar_cirurgias_usuario') }}">Cirurgias</a>
+                <a href="#">Salas</a>
+                <a href="#">Agendamento</a>
+                <a href="#">Dados</a>
+            </div>
+        </div>
+    </section>
+</body>
+</html>
