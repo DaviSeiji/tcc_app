@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Cirurgia - Agenda Cirúrgica</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .form-container {
+            max-width: 650px;
+            margin: 50px auto;
+            background-color: #1e1e1e;
+            padding: 30px 40px;
+            border-radius: 12px;
+            color: #f5f5f5;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+            color: #bbb;
+        }
+
+        select, input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            margin-top: 5px;
+            background-color: #252525;
+            color: #fff;
+        }
+
+        .btn-salvar {
+            width: 100%;
+            margin-top: 25px;
+            background-color: #3498db;
+            color: #fff;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-salvar:hover {
+            opacity: 0.9;
+            transform: scale(1.03);
+        }
+
+        .btn-voltar {
+            display: inline-block;
+            margin-top: 15px;
+            color: #bbb;
+            text-decoration: none;
+            text-align: center;
+            width: 100%;
+        }
+
+        .btn-voltar:hover {
+            color: #fff;
+            text-decoration: underline;
+        }
+
+        .section-title {
+            margin-top: 25px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #ddd;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">
+            <a href="{{ url_for('usuario.home') }}" class="logo-link">Agenda Cirúrgica</a>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('cirurgia.listar_cirurgias_usuario') }}" class="active">Cirurgias</a>
+            <a href="#">Salas</a>
+            <a href="#">Agendamento</a>
+            <a href="#">Dados</a>
+            <a href="{{ url_for('usuario.logout') }}" class="btn-primary">Sair</a>
+        </div>
+    </nav>
+
+    <div class="form-container">
+        <h1>Editar Cirurgia</h1>
+
+        <form method="POST">
+            <!-- Dados principais -->
+            <label for="tipo">Tipo de Cirurgia *</label>
+            <input type="text" name="tipo" id="tipo" value="{{ cirurgia.tipo }}" required>
+
+            <label for="plano">Plano de Saúde *</label>
+            <input type="text" name="plano" id="plano" value="{{ cirurgia.plano }}" required>
+
+            <label for="duracao_prevista">Duração Prevista (minutos)</label>
+            <input type="number" name="duracao_prevista" id="duracao_prevista" value="{{ cirurgia.duracao_prevista or '' }}">
+
+            <label for="duracao_real">Duração Real (minutos)</label>
+            <input type="number" name="duracao_real" id="duracao_real" value="{{ cirurgia.duracao_real or '' }}">
+
+            <label for="status">Status</label>
+            <select name="status" id="status">
+                <option value="pendente" {% if cirurgia.status == 'pendente' %}selected{% endif %}>Pendente</option>
+                <option value="em andamento" {% if cirurgia.status == 'em andamento' %}selected{% endif %}>Em andamento</option>
+                <option value="finalizada" {% if cirurgia.status == 'finalizada' %}selected{% endif %}>Finalizada</option>
+            </select>
+
+            <!-- Características opcionais -->
+            <div class="section-title">Informações adicionais (opcional)</div>
+
+            <label for="faixa_etaria">Faixa Etária</label>
+            <input type="text" name="faixa_etaria" id="faixa_etaria" value="{{ caracteristicas.faixa_etaria if caracteristicas else '' }}">
+
+            <label for="sex">Sexo</label>
+            <select name="sex" id="sex">
+                <option value="">Selecione</option>
+                <option value="M" {% if caracteristicas and caracteristicas.sex=='M' %}selected{% endif %}>Masculino</option>
+                <option value="F" {% if caracteristicas and caracteristicas.sex=='F' %}selected{% endif %}>Feminino</option>
+            </select>
+
+            <label for="bmi">BMI</label>
+            <input type="number" step="0.1" name="bmi" id="bmi" value="{{ caracteristicas.bmi if caracteristicas else '' }}">
+
+            <label for="asa">ASA</label>
+            <input type="number" step="0.1" name="asa" id="asa" value="{{ caracteristicas.asa if caracteristicas else '' }}">
+
+            <label for="emop">EMOP</label>
+            <input type="text" name="emop" id="emop" value="{{ caracteristicas.emop if caracteristicas else '' }}">
+
+            <button type="submit" class="btn-salvar">Salvar Alterações</button>
+        </form>
+
+        <a href="{{ url_for('cirurgia.listar_cirurgias_usuario') }}" class="btn-voltar">
+            ← Voltar para lista de cirurgias
+        </a>
+    </div>
+
+</body>
+</html>

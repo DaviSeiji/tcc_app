@@ -43,9 +43,9 @@ body, html {
 .hero {
     display: flex;
     flex-direction: column;
-    justify-content: flex-start; /* Substitui center por flex-start */
+    justify-content: flex-start;
     align-items: center;
-    padding: 30px 50px; /* reduz padding superior */
+    padding: 30px 50px;
     min-height: calc(100vh - 80px);
     background: linear-gradient(135deg, #111, #222);
     color: white;
@@ -64,14 +64,44 @@ body, html {
     color: #ccc;
 }
 
-.formulario input {
+/* Inputs e Selects */
+.formulario input,
+.formulario select {
     width: 100%;
     margin: 10px 0;
     padding: 12px;
+    padding-right: 40px; /* espaço extra pra setinha */
     border-radius: 8px;
-    border: none;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    background-color: #fff;
+    color: #333;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    box-sizing: border-box; /* garante mesma largura dos inputs */
 }
 
+/* Ícone personalizado da seta do dropdown */
+.formulario select {
+    background-image: url("data:image/svg+xml;utf8,<svg fill='%231dd1a1' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 18px;
+    cursor: pointer;
+}
+
+
+/* Foco (clicado) */
+.formulario input:focus,
+.formulario select:focus {
+    border-color: #1dd1a1;
+    box-shadow: 0 0 5px rgba(29, 209, 161, 0.3);
+    outline: none;
+}
+
+/* Botão principal */
 .formulario button {
     width: 100%;
     padding: 12px;
@@ -88,6 +118,7 @@ body, html {
     background-color: #10ac84;
 }
 
+/* Mensagens */
 .mensagens p.sucesso {
     color: #4caf50;
 }
@@ -120,7 +151,7 @@ body, html {
     font-weight: bold;
 }
 
-/* Botão branco para Comece Agora */
+/* Botão branco da home */
 .btn-hero-white {
     background-color: white;
     color: #111;
@@ -135,10 +166,10 @@ body, html {
     background-color: #f0f0f0;
 }
 
-/* Botão clean estilo link com underline */
+/* Botão estilo link (ex: “Voltar”) */
 .btn-link {
     display: inline-block;
-    color: #1dd1a1;       /* cor da paleta */
+    color: #1dd1a1;
     text-decoration: underline;
     font-weight: bold;
     margin-bottom: 20px;
@@ -146,6 +177,6 @@ body, html {
 }
 
 .btn-link:hover {
-    color: #10ac84;       /* muda levemente a cor no hover */
-    text-decoration: none; /* tira underline ao passar o mouse */
+    color: #10ac84;
+    text-decoration: none;
 }

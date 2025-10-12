@@ -5,6 +5,86 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cirurgias - Agenda Cirúrgica</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Font Awesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tabela-cirurgias {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 25px;
+            background-color: #1e1e1e;
+            color: #f5f5f5;
+            border: 1px solid #333;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .tabela-cirurgias th, .tabela-cirurgias td {
+            border: 1px solid #333;
+            padding: 12px 15px;
+            text-align: center;
+        }
+
+        .tabela-cirurgias th {
+            background-color: #2d2d2d;
+            font-weight: bold;
+        }
+
+        .tabela-cirurgias tr:nth-child(even) {
+            background-color: #252525;
+        }
+
+        .tabela-cirurgias tr:hover {
+            background-color: #333;
+            transition: 0.2s ease-in-out;
+        }
+
+        .btn-icon {
+            color: #fff;
+            border: none;
+            padding: 8px 10px;
+            margin: 0 3px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95em;
+        }
+
+        .btn-view { background-color: #3498db; }   /* azul */
+        .btn-edit { background-color: #f1c40f; }   /* amarelo */
+        .btn-delete { background-color: #e74c3c; } /* vermelho */
+
+        .btn-icon:hover {
+            opacity: 0.85;
+            transform: scale(1.05);
+        }
+
+        .sem-cirurgias {
+            margin-top: 30px;
+            font-size: 1.1em;
+            color: #bbb;
+        }
+
+        .btn-link {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        .btn-link:hover {
+            text-decoration: underline;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
     <!-- Navbar -->
@@ -13,7 +93,7 @@
             <a href="{{ url_for('usuario.home') }}" class="logo-link">Agenda Cirúrgica</a>
         </div>
         <div class="nav-links">
-            <a href="{{ url_for('cirurgia.listar_cirurgias_usuario') }}">Cirurgias</a>
+            <a href="{{ url_for('cirurgia.listar_cirurgias_usuario') }}" class="active">Cirurgias</a>
             <a href="#">Salas</a>
             <a href="#">Agendamento</a>
             <a href="#">Dados</a>
@@ -21,13 +101,16 @@
         </div>
     </nav>
 
-    <!-- Hero Section -->
+    <!-- Conteúdo -->
     <section class="hero">
         <div class="hero-content">
-            <h1>Cirurgias</h1>
+            <h1>Minhas Cirurgias</h1>
 
-            <a href="{{ url_for('cirurgia.adicionar_cirurgia') }}" class="btn-link">Adicionar Cirurgia</a>
+            <a href="{{ url_for('cirurgia.adicionar_cirurgia') }}" class="btn-link">
+                + Adicionar Cirurgia
+            </a>
 
+            {% if cirurgias %}
             <table class="tabela-cirurgias">
                 <thead>
                     <tr>
@@ -43,11 +126,24 @@
                         <td>{{ c.tipo }}</td>
                         <td>{{ c.plano }}</td>
                         <td>{{ c.status }}</td>
-                        <td><a href="{{ url_for('cirurgia.ver_cirurgia', id=c.id) }}" class="btn-primary">Ver</a></td>
+                        <td>
+                            <a href="{{ url_for('cirurgia.ver_cirurgia', id=c.id) }}" class="btn-icon btn-view" title="Ver Detalhes">
+                                <i class="fa-solid fa-plus"></i>
+                            </a>
+                            <a href="{{ url_for('cirurgia.editar_cirurgia', id=c.id) }}" class="btn-icon btn-edit" title="Editar">
+                                <i class="fa-solid fa-pen"></i>
+                            </a>
+                            <a href="{{ url_for('cirurgia.excluir_cirurgia', id=c.id) }}" class="btn-icon btn-delete" title="Excluir" onclick="return confirm('Tem certeza que deseja excluir esta cirurgia?')">
+                                <i class="fa-solid fa-trash"></i>
+                            </a>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
+            {% else %}
+            <p class="sem-cirurgias">Você ainda não possui cirurgias cadastradas.</p>
+            {% endif %}
         </div>
     </section>
 </body>

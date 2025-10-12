@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adicionar Cirurgia - Agenda Cirúrgica</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .extra-info {
+            display: none;
+            margin-top: 20px;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .btn-toggle {
+            background: none;
+            border: none;
+            color: #1dd1a1;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 10px;
+            text-decoration: underline;
+        }
+
+        .info-text {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">
+            <a href="{{ url_for('usuario.home') }}" class="logo-link">Agenda Cirúrgica</a>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('cirurgia.listar_cirurgias_usuario') }}">Cirurgias</a>
+            <a href="#">Salas</a>
+            <a href="#">Agendamento</a>
+            <a href="#">Dados</a>
+            <a href="{{ url_for('usuario.logout') }}" class="btn-primary">Sair</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Adicionar Cirurgia</h1>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                <div class="mensagens">
+                  {% for categoria, msg in messages %}
+                    <p class="{{ categoria }}">{{ msg }}</p>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            {% endwith %}
+
+            <form action="{{ url_for('cirurgia.adicionar_cirurgia') }}" method="POST" class="formulario" style="max-width: 600px; margin: 0 auto;">
+
+                <label for="tipo">Tipo da cirurgia</label>
+                <select name="tipo" id="tipo" required>
+                    <option value="">Selecione...</option>
+                    <option value="eletiva">Eletiva</option>
+                    <option value="urgencia">Urgência</option>
+                </select>
+
+                <label for="plano">Plano de saúde</label>
+                <select name="plano" id="plano" required>
+                    <option value="">Selecione...</option>
+                    <option value="sus">SUS</option>
+                    <option value="suplementar">Suplementar</option>
+                </select>
+
+                <button type="button" class="btn-toggle" id="toggleExtra">Deseja adicionar mais informações da cirurgia?</button>
+                <p class="info-text">Adicionar informações melhora a eficiência do agendamento. Caso não adicione, o tempo estimado será o tempo médio das cirurgias.</p>
+
+                <div class="extra-info" id="extraInfo">
+                    <h3 style="color:#1dd1a1; margin-top:30px;">Mais informações</h3>
+
+                    <label for="sex">Sexo (M/F)</label>
+                    <select name="sex" id="sex">
+                        <option value="">Selecione...</option>
+                        <option value="M">Masculino</option>
+                        <option value="F">Feminino</option>
+                    </select>
+
+                    <input type="number" step="0.1" name="bmi" placeholder="IMC">
+                    <input type="text" name="asa" placeholder="ASA">
+
+                    <label for="emop">Emergência (Sim/Não)</label>
+                    <select name="emop" id="emop">
+                        <option value="">Selecione...</option>
+                        <option value="Y">Sim</option>
+                        <option value="N">Não</option>
+                    </select>
+
+                    <input type="text" name="department" placeholder="Departamento">
+                    <input type="text" name="optype" placeholder="Tipo de operação">
+                    <input type="text" name="approach" placeholder="Abordagem">
+                    <input type="text" name="position" placeholder="Posição">
+                    <input type="text" name="ane_type" placeholder="Tipo de anestesia">
+                    <input type="text" name="faixa_etaria" placeholder="Faixa etária">
+                </div>
+
+                <button type="submit" class="btn-primary">Salvar Cirurgia</button>
+            </form>
+
+            <a href="{{ url_for('cirurgia.listar_cirurgias_usuario') }}" class="btn-link">← Voltar para Cirurgias</a>
+        </div>
+    </section>
+
+    <script>
+        const toggleButton = document.getElementById("toggleExtra");
+        const extraInfo = document.getElementById("extraInfo");
+
+        toggleButton.addEventListener("click", () => {
+            extraInfo.style.display = extraInfo.style.display === "block" ? "none" : "block";
+        });
+    </script>
+</body>
+</html>

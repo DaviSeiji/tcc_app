@@ -26,7 +26,7 @@ class Cirurgia:
                 INSERT INTO cirurgias (usuario_id, tipo, plano, duracao_prevista, duracao_real, status)
                 VALUES (?, ?, ?, ?, ?, ?)
             """, (self.usuario_id, self.tipo, self.plano, self.duracao_prevista, self.duracao_real, self.status))
-            self.id = cursor.lastrowid
+            self.id = cursor.lastrowid 
         else:
             cursor.execute("""
                 UPDATE cirurgias
@@ -35,6 +35,8 @@ class Cirurgia:
             """, (self.tipo, self.plano, self.duracao_prevista, self.duracao_real, self.status, self.id))
         conn.commit()
         conn.close()
+        return self.id 
+
 
     def excluir(self):
         conn = sqlite3.connect(DB_PATH)

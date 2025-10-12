@@ -65,7 +65,6 @@ def login_usuario():
     session["usuario_id"] = usuario.id
     session["usuario_nome"] = usuario.nome
 
-    flash(f"Bem-vindo, {usuario.nome}!", "sucesso")
     return redirect(url_for("usuario.home"))
 
 
