@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask import Blueprint, render_template, request, redirect, url_for, session
 from models.cirurgia import Cirurgia, CirurgiaCaracteristicas
 import sqlite3
 from pathlib import Path
@@ -15,7 +15,6 @@ db_path = BASE_DIR / "database" / "banco_cirurgias.db"
 @bp_cirurgia.route("/cirurgias")
 def listar_cirurgias_usuario():
     if "usuario_id" not in session:
-        flash("Faça login para continuar.", "erro")
         return redirect(url_for("usuario.pagina_login"))
     
     usuario_id = session["usuario_id"]
@@ -29,48 +28,104 @@ def listar_cirurgias_usuario():
 @bp_cirurgia.route("/cirurgias/adicionar", methods=["GET", "POST"])
 def adicionar_cirurgia():
     if "usuario_id" not in session:
-        flash("Faça login para continuar.", "erro")
         return redirect(url_for("usuario.pagina_login"))
 
     if request.method == "POST":
+        # --- 1. Coleta dos dados obrigatórios ---
         tipo = request.form.get("tipo")
         plano = request.form.get("plano")
 
         if not tipo or not plano:
-            flash("Preencha todos os campos obrigatórios.", "erro")
             return redirect(url_for("cirurgia.adicionar_cirurgia"))
 
-        # 1️⃣ Cria a cirurgia
+        # --- 2. Salva a cirurgia principal para obter o ID ---
+        # (Assumindo que sua classe Cirurgia e o método salvar() funcionam como antes)
         c = Cirurgia(
             usuario_id=session["usuario_id"],
             tipo=tipo,
             plano=plano,
             duracao_prevista=None,
             duracao_real=None,
-            status="pendente"
+            status="Pendente"
         )
         cirurgia_id = c.salvar()
 
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-        cursor.execute("""
-            INSERT INTO cirurgia_caracteristicas (cirurgia_id)
-            VALUES (?)
-        """, (cirurgia_id,))
-        conn.commit()
-        conn.close()
+        # Se não conseguiu criar a cirurgia, retorna um erro.
+        if not cirurgia_id:
+            return redirect(url_for("cirurgia.adicionar_cirurgia"))
 
-        flash("Cirurgia adicionada com sucesso!", "sucesso")
+        # --- 3. Coleta dos dados opcionais (características) ---
+        # Usamos request.form.get() que retorna None se o campo não existir.
+        # Para campos numéricos, convertemos strings vazias '' para None para evitar erros.
+        
+        # Função auxiliar para converter string vazia em None, e o resto para float
+        def to_float_or_none(value):
+            if value is None or value == '':
+                return None
+            return float(value)
+
+        # Dicionário com todos os dados das características
+        caracteristicas = {
+            "cirurgia_id": cirurgia_id,
+            "sex": request.form.get("sex") or None,
+            "bmi": to_float_or_none(request.form.get("bmi")),
+            "asa": to_float_or_none(request.form.get("asa")),
+            "emop": request.form.get("emop") or None,
+            "department": request.form.get("department") or None,
+            "optype": request.form.get("optype") or None,
+            "approach": request.form.get("approach") or None,
+            "position": request.form.get("position") or None,
+            "ane_type": request.form.get("ane_type") or None,
+            "preop_htn": request.form.get("preop_htn") or None,
+            "preop_dm": request.form.get("preop_dm") or None,
+            "preop_pft": request.form.get("preop_pft") or None,
+            "preop_hb": to_float_or_none(request.form.get("preop_hb")),
+            "preop_plt": to_float_or_none(request.form.get("preop_plt")),
+            "preop_pt": to_float_or_none(request.form.get("preop_pt")),
+            "preop_aptt": to_float_or_none(request.form.get("preop_aptt")),
+            "preop_na": to_float_or_none(request.form.get("preop_na")),
+            "preop_k": to_float_or_none(request.form.get("preop_k")),
+            "preop_glucose": to_float_or_none(request.form.get("preop_glucose")),
+            "preop_alb": to_float_or_none(request.form.get("preop_alb")),
+            "preop_got": to_float_or_none(request.form.get("preop_got")),
+            "preop_gpt": to_float_or_none(request.form.get("preop_gpt")),
+            "preop_bun": to_float_or_none(request.form.get("preop_bun")),
+            "preop_cr": to_float_or_none(request.form.get("preop_cr")),
+            "faixa_etaria": request.form.get("faixa_etaria") or None
+        }
+
+        # --- 4. Insere as características no banco de dados ---
+        try:
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+
+            # Monta a query dinamicamente a partir das chaves do dicionário
+            colunas = ", ".join(caracteristicas.keys())
+            placeholders = ", ".join(["?"] * len(caracteristicas))
+            
+            query = f"INSERT INTO cirurgia_caracteristicas ({colunas}) VALUES ({placeholders})"
+            
+            # Os valores a serem inseridos, na ordem correta
+            valores = tuple(caracteristicas.values())
+
+            cursor.execute(query, valores)
+            conn.commit()
+
+        except sqlite3.Error as e:
+            return redirect(url_for("cirurgia.adicionar_cirurgia"))
+        finally:
+            if conn:
+                conn.close()
+
         return redirect(url_for("cirurgia.listar_cirurgias_usuario"))
 
     return render_template("adicionar_cirurgia.html")
 
-
+# ------------------------------------
 @bp_cirurgia.route("/cirurgias/<int:id>")
 def ver_cirurgia(id):
     cirurgia = Cirurgia.buscar_por_id(id)
     if not cirurgia:
-        flash("Cirurgia não encontrada.", "erro")
         return redirect(url_for("cirurgia.listar_cirurgias_usuario"))
 
     conn = sqlite3.connect(db_path)
@@ -91,54 +146,100 @@ def excluir_cirurgia(id):
     
     cirurgia = Cirurgia.buscar_por_id(id)
     if not cirurgia:
-        flash("Cirurgia não encontrada.", "erro")
         return redirect(url_for("cirurgia.listar_cirurgias_usuario"))
 
     cirurgia.excluir()
-    flash("Cirurgia excluída com sucesso!", "sucesso")
     return redirect(url_for("cirurgia.listar_cirurgias_usuario"))
 
 @bp_cirurgia.route("/cirurgias/editar/<int:id>", methods=["GET", "POST"])
 def editar_cirurgia(id):
     if "usuario_id" not in session:
-        flash("Faça login para continuar.", "erro")
         return redirect(url_for("usuario.pagina_login"))
 
-    # Busca cirurgia pelo ID
+    # Busca a cirurgia pelo ID e garante que pertence ao usuário logado
     cirurgia = Cirurgia.buscar_por_id(id)
-    if not cirurgia:
-        flash("Cirurgia não encontrada.", "erro")
+    if not cirurgia or cirurgia.usuario_id != session["usuario_id"]:
         return redirect(url_for("cirurgia.listar_cirurgias_usuario"))
 
-    # Busca características
-    caracteristicas = CirurgiaCaracteristicas.listar_por_cirurgia(cirurgia.id)
-    if caracteristicas:
-        caracteristicas = caracteristicas[0]  # Pega a primeira, pois só deve ter 1 registro
-    else:
-        caracteristicas = None
+    # Busca as características associadas
+    # (Assumindo que sua classe de características tenha um método para buscar por cirurgia_id)
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM cirurgia_caracteristicas WHERE cirurgia_id = ?", (id,))
+    caracteristicas_row = cursor.fetchone()
+    conn.close()
 
     if request.method == "POST":
-        # Atualiza dados da cirurgia
+        # Função auxiliar para conversão de tipo
+        def to_float_or_none(value):
+            if value is None or value == '':
+                return None
+            try:
+                return float(value)
+            except (ValueError, TypeError):
+                return None
+        
+        # 1. Atualiza os dados da tabela principal 'cirurgias'
         cirurgia.tipo = request.form.get("tipo")
         cirurgia.plano = request.form.get("plano")
-        cirurgia.duracao_prevista = request.form.get("duracao_prevista") or None
-        cirurgia.duracao_real = request.form.get("duracao_real") or None
+        duracao_prevista = request.form.get("duracao_prevista")
+        cirurgia.duracao_prevista = int(duracao_prevista) if duracao_prevista else None
+        duracao_real = request.form.get("duracao_real")
+        cirurgia.duracao_real = int(duracao_real) if duracao_real else None
         cirurgia.status = request.form.get("status")
-        cirurgia.salvar()
+        cirurgia.salvar() # Salva as alterações na tabela 'cirurgias'
 
-        # Atualiza ou cria características
-        if not caracteristicas:
-            caracteristicas = CirurgiaCaracteristicas(cirurgia_id=cirurgia.id)
+        # 2. Coleta todos os dados das características do formulário
+        dados_caracteristicas = {
+            "sex": request.form.get("sex") or None,
+            "bmi": to_float_or_none(request.form.get("bmi")),
+            "asa": to_float_or_none(request.form.get("asa")),
+            "emop": request.form.get("emop") or None,
+            "department": request.form.get("department") or None,
+            "optype": request.form.get("optype") or None,
+            "approach": request.form.get("approach") or None,
+            "position": request.form.get("position") or None,
+            "ane_type": request.form.get("ane_type") or None,
+            "preop_htn": request.form.get("preop_htn") or None,
+            "preop_dm": request.form.get("preop_dm") or None,
+            "preop_pft": request.form.get("preop_pft") or None,
+            "preop_hb": to_float_or_none(request.form.get("preop_hb")),
+            "preop_plt": to_float_or_none(request.form.get("preop_plt")),
+            "preop_pt": to_float_or_none(request.form.get("preop_pt")),
+            "preop_aptt": to_float_or_none(request.form.get("preop_aptt")),
+            "preop_na": to_float_or_none(request.form.get("preop_na")),
+            "preop_k": to_float_or_none(request.form.get("preop_k")),
+            "preop_glucose": to_float_or_none(request.form.get("preop_glucose")),
+            "preop_alb": to_float_or_none(request.form.get("preop_alb")),
+            "preop_got": to_float_or_none(request.form.get("preop_got")),
+            "preop_gpt": to_float_or_none(request.form.get("preop_gpt")),
+            "preop_bun": to_float_or_none(request.form.get("preop_bun")),
+            "preop_cr": to_float_or_none(request.form.get("preop_cr")),
+            "faixa_etaria": request.form.get("faixa_etaria") or None
+        }
 
-        caracteristicas.sex = request.form.get("sex") or None
-        caracteristicas.bmi = request.form.get("bmi") or None
-        caracteristicas.asa = request.form.get("asa") or None
-        caracteristicas.emop = request.form.get("emop") or None
-        caracteristicas.faixa_etaria = request.form.get("faixa_etaria") or None
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
 
-        caracteristicas.salvar()
-
-        flash("Cirurgia atualizada com sucesso!", "sucesso")
+        if caracteristicas_row:
+            # 3A. Se já existem, atualiza (UPDATE)
+            set_clause = ", ".join([f"{key} = ?" for key in dados_caracteristicas.keys()])
+            query = f"UPDATE cirurgia_caracteristicas SET {set_clause} WHERE cirurgia_id = ?"
+            valores = tuple(dados_caracteristicas.values()) + (id,)
+            cursor.execute(query, valores)
+        else:
+            # 3B. Se não existem, insere (INSERT)
+            dados_caracteristicas['cirurgia_id'] = id
+            colunas = ", ".join(dados_caracteristicas.keys())
+            placeholders = ", ".join(["?"] * len(dados_caracteristicas))
+            query = f"INSERT INTO cirurgia_caracteristicas ({colunas}) VALUES ({placeholders})"
+            valores = tuple(dados_caracteristicas.values())
+            cursor.execute(query, valores)
+        
+        conn.commit()
+        conn.close()
         return redirect(url_for("cirurgia.listar_cirurgias_usuario"))
 
-    return render_template("editar_cirurgia.html", cirurgia=cirurgia, caracteristicas=caracteristicas)
+    # Passa os dados para o template no método GET
+    return render_template("editar_cirurgia.html", cirurgia=cirurgia, caracteristicas=caracteristicas_row)

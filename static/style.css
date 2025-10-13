@@ -64,23 +64,29 @@ body, html {
     color: #ccc;
 }
 
+/* --- SEÇÃO DO FORMULÁRIO CORRIGIDA --- */
+
 /* Inputs e Selects */
 .formulario input,
 .formulario select {
     width: 100%;
     margin: 10px 0;
     padding: 12px;
-    padding-right: 40px; /* espaço extra pra setinha */
     border-radius: 8px;
-    border: 1px solid #ccc;
+    border: 1px solid #555;         /* ALTERADO: Borda mais sutil para tema escuro */
     font-size: 16px;
-    background-color: #fff;
-    color: #333;
+    background-color: #222;         /* ALTERADO: Fundo escuro */
+    color: white;                   /* ALTERADO: Texto branco */
     transition: border-color 0.3s, box-shadow 0.3s;
+    box-sizing: border-box;
+}
+
+/* Garante que o select não perca o padding direito */
+.formulario select {
+    padding-right: 40px; 
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
-    box-sizing: border-box; /* garante mesma largura dos inputs */
 }
 
 /* Ícone personalizado da seta do dropdown */
@@ -92,12 +98,17 @@ body, html {
     cursor: pointer;
 }
 
+/* Cor do texto de placeholder nos inputs */
+.formulario input::placeholder {
+    color: #888;
+    opacity: 1;
+}
 
 /* Foco (clicado) */
 .formulario input:focus,
 .formulario select:focus {
     border-color: #1dd1a1;
-    box-shadow: 0 0 5px rgba(29, 209, 161, 0.3);
+    box-shadow: 0 0 8px rgba(29, 209, 161, 0.4); /* ALTERADO: Sombra um pouco mais visível */
     outline: none;
 }
 
@@ -105,6 +116,7 @@ body, html {
 .formulario button {
     width: 100%;
     padding: 12px;
+    margin-top: 15px; /* Adicionado espaço acima do botão */
     border: none;
     border-radius: 8px;
     background-color: #1dd1a1;
@@ -117,6 +129,9 @@ body, html {
 .formulario button:hover {
     background-color: #10ac84;
 }
+
+/* --- FIM DA SEÇÃO CORRIGIDA --- */
+
 
 /* Mensagens */
 .mensagens p.sucesso {

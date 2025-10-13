@@ -6,146 +6,253 @@
     <title>Editar Cirurgia - Agenda Cirúrgica</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        .form-container {
-            max-width: 650px;
-            margin: 50px auto;
-            background-color: #1e1e1e;
-            padding: 30px 40px;
-            border-radius: 12px;
-            color: #f5f5f5;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-
-        label {
+        .extra-info {
             display: block;
-            margin-top: 15px;
-            font-weight: bold;
-            color: #bbb;
+            margin-top: 20px;
+            animation: fadeIn 0.4s ease;
         }
-
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
         select, input[type="text"], input[type="number"] {
             width: 100%;
             padding: 10px;
-            border-radius: 6px;
-            border: 1px solid #444;
-            margin-top: 5px;
-            background-color: #252525;
-            color: #fff;
-        }
-
-        .btn-salvar {
-            width: 100%;
-            margin-top: 25px;
-            background-color: #3498db;
-            color: #fff;
-            padding: 12px;
-            border: none;
+            margin-bottom: 15px;
             border-radius: 8px;
-            cursor: pointer;
-            transition: 0.3s;
+            border: 1px solid #ccc;
+            background: #222;
+            color: white;
         }
-
-        .btn-salvar:hover {
-            opacity: 0.9;
-            transform: scale(1.03);
-        }
-
-        .btn-voltar {
-            display: inline-block;
-            margin-top: 15px;
-            color: #bbb;
-            text-decoration: none;
-            text-align: center;
-            width: 100%;
-        }
-
-        .btn-voltar:hover {
-            color: #fff;
-            text-decoration: underline;
-        }
-
-        .section-title {
-            margin-top: 25px;
-            font-size: 18px;
-            font-weight: bold;
-            color: #ddd;
-        }
+        label { display: block; margin-bottom: 5px; font-weight: 500; }
+        h3 { margin-bottom: 10px; color: #1dd1a1; }
+        .info-text { font-size: 0.9rem; color: #aaa; margin-top: 5px; }
     </style>
 </head>
 <body>
+<nav class="navbar">
+    <div class="logo">
+        <a href="{{ url_for('usuario.home') }}" class="logo-link">Agenda Cirúrgica</a>
+    </div>
+    <div class="nav-links">
+        <a href="{{ url_for('cirurgia.listar_cirurgias_usuario') }}">Cirurgias</a>
+        <a href="#">Salas</a>
+        <a href="#">Agendamento</a>
+        <a href="#">Dados</a>
+        <a href="{{ url_for('usuario.logout') }}" class="btn-primary">Sair</a>
+    </div>
+</nav>
 
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="logo">
-            <a href="{{ url_for('usuario.home') }}" class="logo-link">Agenda Cirúrgica</a>
-        </div>
-        <div class="nav-links">
-            <a href="{{ url_for('cirurgia.listar_cirurgias_usuario') }}" class="active">Cirurgias</a>
-            <a href="#">Salas</a>
-            <a href="#">Agendamento</a>
-            <a href="#">Dados</a>
-            <a href="{{ url_for('usuario.logout') }}" class="btn-primary">Sair</a>
-        </div>
-    </nav>
-
-    <div class="form-container">
+<section class="hero">
+    <div class="hero-content">
         <h1>Editar Cirurgia</h1>
 
-        <form method="POST">
-            <!-- Dados principais -->
-            <label for="tipo">Tipo de Cirurgia *</label>
-            <input type="text" name="tipo" id="tipo" value="{{ cirurgia.tipo }}" required>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="mensagens">
+              {% for categoria, msg in messages %}
+                <p class="{{ categoria }}">{{ msg }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
 
-            <label for="plano">Plano de Saúde *</label>
-            <input type="text" name="plano" id="plano" value="{{ cirurgia.plano }}" required>
+        <form action="{{ url_for('cirurgia.editar_cirurgia', id=cirurgia.id) }}" method="POST" class="formulario" style="max-width: 600px; margin: 0 auto;">
+            
+            <label for="tipo">Tipo da cirurgia</label>
+            <select name="tipo" id="tipo" required>
+                <option value="Eletiva" {% if cirurgia.tipo == 'Eletiva' %}selected{% endif %}>Eletiva</option>
+                <option value="Urgência" {% if cirurgia.tipo == 'Urgência' %}selected{% endif %}>Urgência</option>
+            </select>
 
-            <label for="duracao_prevista">Duração Prevista (minutos)</label>
-            <input type="number" name="duracao_prevista" id="duracao_prevista" value="{{ cirurgia.duracao_prevista or '' }}">
-
-            <label for="duracao_real">Duração Real (minutos)</label>
-            <input type="number" name="duracao_real" id="duracao_real" value="{{ cirurgia.duracao_real or '' }}">
+            <label for="plano">Plano de saúde</label>
+            <select name="plano" id="plano" required>
+                <option value="SUS" {% if cirurgia.plano == 'SUS' %}selected{% endif %}>SUS</option>
+                <option value="Suplementar" {% if cirurgia.plano == 'Suplementar' %}selected{% endif %}>Suplementar</option>
+            </select>
 
             <label for="status">Status</label>
-            <select name="status" id="status">
-                <option value="pendente" {% if cirurgia.status == 'pendente' %}selected{% endif %}>Pendente</option>
-                <option value="em andamento" {% if cirurgia.status == 'em andamento' %}selected{% endif %}>Em andamento</option>
-                <option value="finalizada" {% if cirurgia.status == 'finalizada' %}selected{% endif %}>Finalizada</option>
+            <select name="status" id="status" required>
+                {% for s in ["Pendente","Agendada","Realizada"] %}
+                <option value="{{ s }}" {% if cirurgia.status == s %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
             </select>
 
-            <!-- Características opcionais -->
-            <div class="section-title">Informações adicionais (opcional)</div>
+            <div class="extra-info" id="extraInfo">
+                <h3>Mais informações</h3>
 
-            <label for="faixa_etaria">Faixa Etária</label>
-            <input type="text" name="faixa_etaria" id="faixa_etaria" value="{{ caracteristicas.faixa_etaria if caracteristicas else '' }}">
+                <label for="sex">Sexo</label>
+                <select name="sex" id="sex">
+                    <option value="">Selecione...</option>
+                    <option value="M" {% if caracteristicas and caracteristicas['sex'] == 'M' %}selected{% endif %}>Masculino</option>
+                    <option value="F" {% if caracteristicas and caracteristicas['sex'] == 'F' %}selected{% endif %}>Feminino</option>
+                </select>
 
-            <label for="sex">Sexo</label>
-            <select name="sex" id="sex">
-                <option value="">Selecione</option>
-                <option value="M" {% if caracteristicas and caracteristicas.sex=='M' %}selected{% endif %}>Masculino</option>
-                <option value="F" {% if caracteristicas and caracteristicas.sex=='F' %}selected{% endif %}>Feminino</option>
-            </select>
+                <label for="peso">Peso (kg)</label>
+                <input type="number" step="0.1" name="peso" id="peso" value="{{ caracteristicas['peso'] if caracteristicas else '' }}">
 
-            <label for="bmi">BMI</label>
-            <input type="number" step="0.1" name="bmi" id="bmi" value="{{ caracteristicas.bmi if caracteristicas else '' }}">
+                <label for="altura">Altura (m)</label>
+                <input type="number" step="0.01" name="altura" id="altura" value="{{ caracteristicas['altura'] if caracteristicas else '' }}">
 
-            <label for="asa">ASA</label>
-            <input type="number" step="0.1" name="asa" id="asa" value="{{ caracteristicas.asa if caracteristicas else '' }}">
+                <input type="hidden" name="bmi" id="bmi" value="{{ caracteristicas['bmi'] if caracteristicas else '' }}">
+                <p class="info-text">O IMC será recalculado automaticamente se peso ou altura forem alterados.</p>
 
-            <label for="emop">EMOP</label>
-            <input type="text" name="emop" id="emop" value="{{ caracteristicas.emop if caracteristicas else '' }}">
+                <label for="asa">ASA - Risco Anestésico</label>
+                <select name="asa" id="asa">
+                    <option value="">Selecione...</option>
+                    <option value="1" {% if caracteristicas and caracteristicas['asa']|string == '1' %}selected{% endif %}>1 - Saudável</option>
+                    <option value="2" {% if caracteristicas and caracteristicas['asa']|string == '2' %}selected{% endif %}>2 - Leve Risco</option>
+                    <option value="3" {% if caracteristicas and caracteristicas['asa']|string == '3' %}selected{% endif %}>3 - Médio Risco</option>
+                    <option value="4" {% if caracteristicas and caracteristicas['asa']|string == '4' %}selected{% endif %}>4 - Grave Risco</option>
+                </select>
 
-            <button type="submit" class="btn-salvar">Salvar Alterações</button>
+
+                <label for="emop">Emergência</label>
+                <select name="emop" id="emop">
+                    <option value="">Selecione...</option>
+                    <option value="Y" {% if caracteristicas and caracteristicas['emop'] == 'Y' %}selected{% endif %}>Sim</option>
+                    <option value="N" {% if caracteristicas and caracteristicas['emop'] == 'N' %}selected{% endif %}>Não</option>
+                </select>
+
+                <label for="department">Departamento Cirúrgico</label>
+                <select name="department" id="department">
+                    <option value="">Selecione...</option>
+                    {% for dept, label in [("General surgery","Cirurgia Geral"),("Thoracic surgery","Cirurgia Torácica"),("Gynecology","Ginecologia"),("Urology","Urologia")] %}
+                    <option value="{{ dept }}" {% if caracteristicas and caracteristicas['department'] == dept %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+
+                <label for="optype">Tipo de Cirurgia</label>
+                <select name="optype" id="optype">
+                    <option value="">Selecione...</option>
+                    {% for val,label in [("Colorectal","Colorretal"),("Biliary/Pancreas","Biliar/Pâncreas"),("Stomach","Estômago"),("Major resection","Ressecção Maior"),("Minor resection","Ressecção Menor"),("Breast","Mama"),("Transplantation","Transplante"),("Vascular","Vascular"),("Hepatic","Hepática"),("Thyroid","Tireoide"),("Others","Outros")] %}
+                    <option value="{{ val }}" {% if caracteristicas and caracteristicas['optype'] == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+
+                <label for="approach">Abordagem Cirúrgica</label>
+                <select name="approach" id="approach">
+                    <option value="">Selecione...</option>
+                    {% for val,label in [("Open","Aberta"),("Videoscopic","Vídeoscópica"),("Robotic","Robótica")] %}
+                    <option value="{{ val }}" {% if caracteristicas and caracteristicas['approach'] == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+
+                <label for="position">Posição Cirúrgica</label>
+                <select name="position" id="position">
+                    <option value="">Selecione...</option>
+                    {% for val,label in [("Supine","Supina"),("Lithotomy","Litotomia"),("Left lateral decubitus","Decúbito lateral esquerdo"),("Right lateral decubitus","Decúbito lateral direito"),("Prone","Prona"),("Trendelenburg","Trendelenburg"),("Sitting","Sentada")] %}
+                    <option value="{{ val }}" {% if caracteristicas and caracteristicas['position'] == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+
+                <label for="ane_type">Tipo de Anestesia</label>
+                <select name="ane_type" id="ane_type">
+                    <option value="">Selecione...</option>
+                    {% for val,label in [("General","Geral"),("Spinal","Raquidiana"),("Sedation/Analgesia","Sedação/Analgesia")] %}
+                    <option value="{{ val }}" {% if caracteristicas and caracteristicas['ane_type'] == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+
+                <label for="preop_htn">Hipertensão</label>
+                <select name="preop_htn" id="preop_htn">
+                    <option value="">Selecione...</option>
+                    {% for val,label in [("Y","Sim"),("N","Não")] %}
+                        <option value="{{ val }}" {% if caracteristicas and caracteristicas['preop_htn'] == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+
+                <label for="preop_dm">Diabetes</label>
+                <select name="preop_dm" id="preop_dm">
+                    <option value="">Selecione...</option>
+                    {% for val,label in [("Y","Sim"),("N","Não")] %}
+                        <option value="{{ val }}" {% if caracteristicas and caracteristicas['preop_dm'] == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+
+                <label for="preop_pft">Função Pulmonar</label>
+                <select name="preop_pft" id="preop_pft">
+                    <option value="">Selecione...</option>
+                        {% for val,label in [
+                            ("Normal","Normal"),("Mild obstructive","Obstrutivo Leve"),("Mild restrictive","Restritivo Leve"),
+                            ("Moderate/Severe obstructive","Obstrutivo Moderado/Grave"),("Mixed or pure obstructive","Misto ou Obstrutivo Puro"),
+                            ("Moderate/Severe restrictive","Restritivo Moderado/Grave")
+                        ] %}
+                        <option value="{{ val }}" {% if caracteristicas and caracteristicas['preop_pft'] == val %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                </select>
+
+                {% set labels = {
+                    'preop_hb': 'Hemoglobina (g/dL)',
+                    'preop_plt': 'Plaquetas (x10³/μL)',
+                    'preop_pt': 'Tempo de Protrombina (%)',
+                    'preop_aptt': 'Tempo de Tromboplastina Parcial Ativada (s)',
+                    'preop_na': 'Sódio (mEq/L)',
+                    'preop_k': 'Potássio (mEq/L)',
+                    'preop_glucose': 'Glicose (mg/dL)',
+                    'preop_alb': 'Albumina (g/dL)',
+                    'preop_got': 'TGO/AST (U/L)',
+                    'preop_gpt': 'TGP/ALT (U/L)',
+                    'preop_bun': 'Nitrogênio Ureico no Sangue (mg/dL)',
+                    'preop_cr': 'Creatinina (mg/dL)'
+                } %}
+
+
+                <!-- Campos pré-operatórios numéricos e outros -->
+                {% for campo, placeholder, step in [
+                    ('preop_hb','Ex: 12.8','0.1'),
+                    ('preop_plt','Ex: 241',None),
+                    ('preop_pt','Ex: 100',None),
+                    ('preop_aptt','Ex: 32.7','0.1'),
+                    ('preop_na','Ex: 140',None),
+                    ('preop_k','Ex: 4.2','0.1'),
+                    ('preop_glucose','Ex: 115',None),
+                    ('preop_alb','Ex: 4.0','0.1'),
+                    ('preop_got','Ex: 30',None),
+                    ('preop_gpt','Ex: 29',None),
+                    ('preop_bun','Ex: 16',None),
+                    ('preop_cr','Ex: 1.08','0.01')
+                ] %}
+                <label for="{{ campo }}">{{ labels[campo] }}</label>
+                <input type="number" name="{{ campo }}" id="{{ campo }}" placeholder="{{ placeholder }}" {% if step %} step="{{ step }}" {% endif %} value="{{ caracteristicas[campo] if caracteristicas else '' }}">
+                {% endfor %}
+
+
+                <label for="faixa_etaria">Faixa Etária</label>
+                <select name="faixa_etaria" id="faixa_etaria">
+                    <option value="">Selecione...</option>
+                    {% for val in ['Jovem','Adulto','Meia-idade','Idoso'] %}
+                    <option value="{{ val }}" {% if caracteristicas and caracteristicas['faixa_etaria'] == val %}selected{% endif %}>{{ val }}</option>
+                    {% endfor %}
+                </select>
+
+            </div>
+
+            <button type="submit" class="btn-primary">Salvar Alterações</button>
         </form>
 
-        <a href="{{ url_for('cirurgia.listar_cirurgias_usuario') }}" class="btn-voltar">
-            ← Voltar para lista de cirurgias
-        </a>
+        <a href="{{ url_for('cirurgia.listar_cirurgias_usuario') }}" class="btn-link">← Voltar para Cirurgias</a>
     </div>
+</section>
 
+<script>
+    // Recalcular IMC automaticamente
+    const pesoInput = document.getElementById("peso");
+    const alturaInput = document.getElementById("altura");
+    const bmiInput = document.getElementById("bmi");
+
+    function calcularIMC() {
+        const peso = parseFloat(pesoInput.value);
+        const altura = parseFloat(alturaInput.value);
+        if (peso > 0 && altura > 0) {
+            bmiInput.value = (peso / (altura * altura)).toFixed(2);
+        } else {
+            bmiInput.value = "";
+        }
+    }
+
+    pesoInput.addEventListener("input", calcularIMC);
+    alturaInput.addEventListener("input", calcularIMC);
+</script>
 </body>
 </html>

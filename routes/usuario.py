@@ -1,4 +1,4 @@
-from flask import Blueprint, request, render_template, redirect, url_for, flash, session
+from flask import Blueprint, request, render_template, redirect, url_for, session
 from models.usuario import Usuario
 
 bp_usuario = Blueprint("usuario", __name__)
@@ -29,18 +29,15 @@ def criar_usuario():
     senha = request.form.get("senha")
 
     if not nome or not email or not senha:
-        flash("Preencha todos os campos!", "erro")
         return redirect(url_for("usuario.pagina_cadastro"))
 
     if Usuario.buscar_por_email(email):
-        flash("E-mail já cadastrado!", "erro")
         return redirect(url_for("usuario.pagina_cadastro"))
 
     u = Usuario(nome=nome, email=email)
     u.set_password(senha)  # senha criptografada
     u.salvar()
 
-    flash("Cadastro realizado com sucesso! Faça login.", "sucesso")
     return redirect(url_for("usuario.pagina_login"))
 
 
@@ -53,12 +50,12 @@ def login_usuario():
     senha = request.form.get("senha")
 
     if not email or not senha:
-        flash("Preencha todos os campos!", "erro")
         return redirect(url_for("usuario.pagina_login"))
 
     usuario = Usuario.autenticar(email, senha)
     if not usuario:
-        flash("E-mail ou senha incorretos.", "erro")
+        return redirect(url_for("usuario.pagina_login"))
+
         return redirect(url_for("usuario.pagina_login"))
 
     # ✅ Salva informações na sessão
@@ -74,7 +71,6 @@ def login_usuario():
 @bp_usuario.route("/home")
 def home():
     if "usuario_id" not in session:
-        flash("Faça login para continuar.", "erro")
         return redirect(url_for("usuario.pagina_login"))
 
     nome = session.get("usuario_nome")
@@ -87,5 +83,4 @@ def home():
 @bp_usuario.route("/logout")
 def logout():
     session.clear()
-    flash("Você saiu da conta.", "sucesso")
     return redirect(url_for("usuario.pagina_login"))

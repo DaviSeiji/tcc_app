@@ -33,10 +33,29 @@
             color: #aaa;
             margin-top: 5px;
         }
+
+        select, input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            background: #222;
+            color: white;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        h3 {
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
-    <!-- Navbar -->
     <nav class="navbar">
         <div class="logo">
             <a href="{{ url_for('usuario.home') }}" class="logo-link">Agenda Cirúrgica</a>
@@ -69,15 +88,15 @@
                 <label for="tipo">Tipo da cirurgia</label>
                 <select name="tipo" id="tipo" required>
                     <option value="">Selecione...</option>
-                    <option value="eletiva">Eletiva</option>
-                    <option value="urgencia">Urgência</option>
+                    <option value="Eletiva">Eletiva</option>
+                    <option value="Urgência">Urgência</option>
                 </select>
 
                 <label for="plano">Plano de saúde</label>
                 <select name="plano" id="plano" required>
                     <option value="">Selecione...</option>
-                    <option value="sus">SUS</option>
-                    <option value="suplementar">Suplementar</option>
+                    <option value="SUS">SUS</option>
+                    <option value="Suplementar">Suplementar</option>
                 </select>
 
                 <button type="button" class="btn-toggle" id="toggleExtra">Deseja adicionar mais informações da cirurgia?</button>
@@ -86,29 +105,161 @@
                 <div class="extra-info" id="extraInfo">
                     <h3 style="color:#1dd1a1; margin-top:30px;">Mais informações</h3>
 
-                    <label for="sex">Sexo (M/F)</label>
+                    <label for="sex">Sexo</label>
                     <select name="sex" id="sex">
                         <option value="">Selecione...</option>
                         <option value="M">Masculino</option>
                         <option value="F">Feminino</option>
                     </select>
 
-                    <input type="number" step="0.1" name="bmi" placeholder="IMC">
-                    <input type="text" name="asa" placeholder="ASA">
+                    <label for="peso">Peso (kg)</label>
+                    <input type="number" step="0.1" name="peso" id="peso" placeholder="Ex: 70.5">
 
-                    <label for="emop">Emergência (Sim/Não)</label>
+                    <label for="altura">Altura (m)</label>
+                    <input type="number" step="0.01" name="altura" id="altura" placeholder="Ex: 1.75">
+
+                    <input type="hidden" name="bmi" id="bmi">
+                    <p class="info-text">O IMC será calculado automaticamente a partir do peso e altura.</p>
+
+                    <label for="asa">ASA - Risco Anestésico</label>
+                    <select name="asa" id="asa">
+                        <option value="">Selecione...</option>
+                        <option value="1">1 - Saudável</option>
+                        <option value="2">2 - Leve Risco</option>
+                        <option value="3">3 - Médio Risco</option>
+                        <option value="4">4 - Grave Risco</option>
+                    </select>
+
+                    <label for="emop">Emergência</label>
                     <select name="emop" id="emop">
                         <option value="">Selecione...</option>
                         <option value="Y">Sim</option>
                         <option value="N">Não</option>
                     </select>
 
-                    <input type="text" name="department" placeholder="Departamento">
-                    <input type="text" name="optype" placeholder="Tipo de operação">
-                    <input type="text" name="approach" placeholder="Abordagem">
-                    <input type="text" name="position" placeholder="Posição">
-                    <input type="text" name="ane_type" placeholder="Tipo de anestesia">
-                    <input type="text" name="faixa_etaria" placeholder="Faixa etária">
+                    <label for="department">Departamento Cirúrgico</label>
+                    <select name="department" id="department">
+                        <option value="">Selecione...</option>
+                        <option value="General surgery">Cirurgia Geral</option>
+                        <option value="Thoracic surgery">Cirurgia Torácica</option>
+                        <option value="Gynecology">Ginecologia</option>
+                        <option value="Urology">Urologia</option>
+                    </select>
+
+                    <label for="optype">Tipo de Cirurgia</label>
+                    <select name="optype" id="optype">
+                        <option value="">Selecione...</option>
+                        <option value="Colorectal">Colorretal</option>
+                        <option value="Biliary/Pancreas">Biliar/Pâncreas</option>
+                        <option value="Stomach">Estômago</option>
+                        <option value="Major resection">Ressecção Maior</option>
+                        <option value="Minor resection">Ressecção Menor</option>
+                        <option value="Breast">Mama</option>
+                        <option value="Transplantation">Transplante</option>
+                        <option value="Vascular">Vascular</option>
+                        <option value="Hepatic">Hepática</option>
+                        <option value="Thyroid">Tireoide</option>
+                        <option value="Others">Outros</option>
+                    </select>
+
+                    <label for="approach">Abordagem Cirúrgica</label>
+                    <select name="approach" id="approach">
+                        <option value="">Selecione...</option>
+                        <option value="Open">Aberta</option>
+                        <option value="Videoscopic">Vídeoscópica</option>
+                        <option value="Robotic">Robótica</option>
+                    </select>
+
+                    <label for="position">Posição Cirúrgica</label>
+                    <select name="position" id="position">
+                        <option value="">Selecione...</option>
+                        <option value="Supine">Supina</option>
+                        <option value="Lithotomy">Litotomia</option>
+                        <option value="Left lateral decubitus">Decúbito lateral esquerdo</option>
+                        <option value="Right lateral decubitus">Decúbito lateral direito</option>
+                        <option value="Prone">Prona</option>
+                        <option value="Trendelenburg">Trendelenburg</option>
+                        <option value="Sitting">Sentada</option>
+                    </select>
+
+                    <label for="ane_type">Tipo de Anestesia</label>
+                    <select name="ane_type" id="ane_type">
+                        <option value="">Selecione...</option>
+                        <option value="General">Geral</option>
+                        <option value="Spinal">Raquidiana</option>
+                        <option value="Sedation/Analgesia">Sedação/Analgesia</option>
+                    </select>
+                    
+                    <label for="preop_htn">Hipertensão</label>
+                    <select name="preop_htn" id="preop_htn">
+                        <option value="">Selecione...</option>
+                        <option value="Y">Sim</option>
+                        <option value="N">Não</option>
+                    </select>
+
+                    <label for="preop_dm">Diabetes</label>
+                    <select name="preop_dm" id="preop_dm">
+                        <option value="">Selecione...</option>
+                        <option value="Y">Sim</option>
+                        <option value="N">Não</option>
+                    </select>
+
+                    <label for="preop_pft">Função Pulmonar</label>
+                    <select name="preop_pft" id="preop_pft">
+                        <option value="">Selecione...</option>
+                        <option value="Normal">Normal</option>
+                        <option value="Mild obstructive">Obstrutivo Leve</option>
+                        <option value="Mild restrictive">Restritivo Leve</option>
+                        <option value="Moderate/Severe obstructive">Obstrutivo Moderado/Grave</option>
+                        <option value="Mixed or pure obstructive">Misto ou Obstrutivo Puro</option>
+                        <option value="Moderate/Severe restrictive">Restritivo Moderado/Grave</option>
+                    </select>
+
+                    <label for="preop_hb">Hemoglobina (g/dL)</label>
+                    <input type="number" step="0.1" name="preop_hb" id="preop_hb" placeholder="Ex: 12.8">
+
+                    <label for="preop_plt">Plaquetas (x10³/μL)</label>
+                    <input type="number" name="preop_plt" id="preop_plt" placeholder="Ex: 241">
+
+                    <label for="preop_pt">Tempo de Protrombina (%)</label>
+                    <input type="number" name="preop_pt" id="preop_pt" placeholder="Ex: 100">
+
+                    <label for="preop_aptt">Tempo de Tromboplastina Parcial Ativada (s)</label>
+                    <input type="number" step="0.1" name="preop_aptt" id="preop_aptt" placeholder="Ex: 32.7">
+
+                    <label for="preop_na">Sódio (mEq/L)</label>
+                    <input type="number" name="preop_na" id="preop_na" placeholder="Ex: 140">
+
+                    <label for="preop_k">Potássio (mEq/L)</label>
+                    <input type="number" step="0.1" name="preop_k" id="preop_k" placeholder="Ex: 4.2">
+
+                    <label for="preop_glucose">Glicose (mg/dL)</label>
+                    <input type="number" name="preop_glucose" id="preop_glucose" placeholder="Ex: 115">
+                    
+                    <label for="preop_alb">Albumina (g/dL)</label>
+                    <input type="number" step="0.1" name="preop_alb" id="preop_alb" placeholder="Ex: 4.0">
+
+                    <label for="preop_got">TGO/AST (U/L)</label>
+                    <input type="number" name="preop_got" id="preop_got" placeholder="Ex: 30">
+
+                    <label for="preop_gpt">TGP/ALT (U/L)</label>
+                    <input type="number" name="preop_gpt" id="preop_gpt" placeholder="Ex: 29">
+
+                    <label for="preop_bun">Nitrogênio Ureico no Sangue (mg/dL)</label>
+                    <input type="number" name="preop_bun" id="preop_bun" placeholder="Ex: 16">
+
+                    <label for="preop_cr">Creatinina (mg/dL)</label>
+                    <input type="number" step="0.01" name="preop_cr" id="preop_cr" placeholder="Ex: 1.08">
+
+                    <label for="faixa_etaria">Faixa Etária</label>
+                    <select name="faixa_etaria" id="faixa_etaria">
+                        <option value="">Selecione...</option>
+                        <option value="Jovem">Jovem</option>
+                        <option value="Adulto">Adulto</option>
+                        <option value="Meia-idade">Meia-idade</option>
+                        <option value="Idoso">Idoso</option>
+                    </select>
+
                 </div>
 
                 <button type="submit" class="btn-primary">Salvar Cirurgia</button>
@@ -119,12 +270,33 @@
     </section>
 
     <script>
+        // Mostrar/ocultar informações extras
         const toggleButton = document.getElementById("toggleExtra");
         const extraInfo = document.getElementById("extraInfo");
 
         toggleButton.addEventListener("click", () => {
             extraInfo.style.display = extraInfo.style.display === "block" ? "none" : "block";
         });
+
+        // Calcular IMC automaticamente
+        const pesoInput = document.getElementById("peso");
+        const alturaInput = document.getElementById("altura");
+        const bmiInput = document.getElementById("bmi");
+
+        function calcularIMC() {
+            const peso = parseFloat(pesoInput.value);
+            const altura = parseFloat(alturaInput.value);
+
+            if (peso > 0 && altura > 0) {
+                const bmi = (peso / (altura * altura)).toFixed(2);
+                bmiInput.value = bmi;
+            } else {
+                bmiInput.value = "";
+            }
+        }
+
+        pesoInput.addEventListener("input", calcularIMC);
+        alturaInput.addEventListener("input", calcularIMC);
     </script>
 </body>
 </html>
