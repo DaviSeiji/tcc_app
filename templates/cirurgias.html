@@ -116,6 +116,7 @@
                     <tr>
                         <th>Tipo</th>
                         <th>Plano</th>
+                        <th>Duração Prevista (min)</th>
                         <th>Status</th>
                         <th>Ações</th>
                     </tr>
@@ -125,6 +126,7 @@
                     <tr>
                         <td>{{ c.tipo }}</td>
                         <td>{{ c.plano }}</td>
+                        <td>{{ c.duracao_prevista if c.duracao_prevista else '—' }}</td>
                         <td>{{ c.status }}</td>
                         <td>
                             <a href="{{ url_for('cirurgia.ver_cirurgia', id=c.id) }}" class="btn-icon btn-view" title="Ver Detalhes">

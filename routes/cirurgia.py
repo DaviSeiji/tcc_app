@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from models.cirurgia import Cirurgia, CirurgiaCaracteristicas
 import sqlite3
 from pathlib import Path
+from utils.utils import prever_duracao
 
 bp_cirurgia = Blueprint("cirurgia", __name__)
 
@@ -16,10 +17,28 @@ db_path = BASE_DIR / "database" / "banco_cirurgias.db"
 def listar_cirurgias_usuario():
     if "usuario_id" not in session:
         return redirect(url_for("usuario.pagina_login"))
-    
-    usuario_id = session["usuario_id"]
-    cirurgias = Cirurgia.listar_por_usuario(usuario_id)
+
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT id, tipo, plano, duracao_prevista, status
+        FROM cirurgias
+        WHERE usuario_id = ?
+    """, (session["usuario_id"],))
+    cirurgias = [
+        {
+            "id": row[0],
+            "tipo": row[1],
+            "plano": row[2],
+            "duracao_prevista": row[3],
+            "status": row[4]
+        }
+        for row in cursor.fetchall()
+    ]
+    conn.close()
+
     return render_template("cirurgias.html", cirurgias=cirurgias)
+
 
 
 # ------------------------------------
@@ -31,42 +50,21 @@ def adicionar_cirurgia():
         return redirect(url_for("usuario.pagina_login"))
 
     if request.method == "POST":
-        # --- 1. Coleta dos dados obrigatórios ---
+
         tipo = request.form.get("tipo")
         plano = request.form.get("plano")
 
         if not tipo or not plano:
             return redirect(url_for("cirurgia.adicionar_cirurgia"))
 
-        # --- 2. Salva a cirurgia principal para obter o ID ---
-        # (Assumindo que sua classe Cirurgia e o método salvar() funcionam como antes)
-        c = Cirurgia(
-            usuario_id=session["usuario_id"],
-            tipo=tipo,
-            plano=plano,
-            duracao_prevista=None,
-            duracao_real=None,
-            status="Pendente"
-        )
-        cirurgia_id = c.salvar()
-
-        # Se não conseguiu criar a cirurgia, retorna um erro.
-        if not cirurgia_id:
-            return redirect(url_for("cirurgia.adicionar_cirurgia"))
-
-        # --- 3. Coleta dos dados opcionais (características) ---
-        # Usamos request.form.get() que retorna None se o campo não existir.
-        # Para campos numéricos, convertemos strings vazias '' para None para evitar erros.
-        
-        # Função auxiliar para converter string vazia em None, e o resto para float
+        # Função auxiliar
         def to_float_or_none(value):
             if value is None or value == '':
                 return None
             return float(value)
 
-        # Dicionário com todos os dados das características
+        # Dicionário das características
         caracteristicas = {
-            "cirurgia_id": cirurgia_id,
             "sex": request.form.get("sex") or None,
             "bmi": to_float_or_none(request.form.get("bmi")),
             "asa": to_float_or_none(request.form.get("asa")),
@@ -94,32 +92,54 @@ def adicionar_cirurgia():
             "faixa_etaria": request.form.get("faixa_etaria") or None
         }
 
-        # --- 4. Insere as características no banco de dados ---
-        try:
-            conn = sqlite3.connect(db_path)
-            cursor = conn.cursor()
+        # Checa se alguma característica foi preenchida
+        preencheu_alguma = any(v not in [None, ""] for v in caracteristicas.values())
 
-            # Monta a query dinamicamente a partir das chaves do dicionário
-            colunas = ", ".join(caracteristicas.keys())
-            placeholders = ", ".join(["?"] * len(caracteristicas))
-            
-            query = f"INSERT INTO cirurgia_caracteristicas ({colunas}) VALUES ({placeholders})"
-            
-            # Os valores a serem inseridos, na ordem correta
-            valores = tuple(caracteristicas.values())
+        # Se preencheu, prevê com IA; senão, define padrão 177
+        if preencheu_alguma:
+            duracao_prevista = prever_duracao(caracteristicas)
+        else:
+            duracao_prevista = 177
 
-            cursor.execute(query, valores)
-            conn.commit()
+        # Cria cirurgia
+        c = Cirurgia(
+            usuario_id=session["usuario_id"],
+            tipo=tipo,
+            plano=plano,
+            duracao_prevista=duracao_prevista,
+            duracao_real=None,
+            status="Pendente"
+        )
+        cirurgia_id = c.salvar()
 
-        except sqlite3.Error as e:
+        if not cirurgia_id:
             return redirect(url_for("cirurgia.adicionar_cirurgia"))
-        finally:
-            if conn:
-                conn.close()
+
+        # Salva características se existirem
+        if preencheu_alguma:
+            try:
+                conn = sqlite3.connect(db_path)
+                cursor = conn.cursor()
+                caracteristicas["cirurgia_id"] = cirurgia_id
+
+                colunas = ", ".join(caracteristicas.keys())
+                placeholders = ", ".join(["?"] * len(caracteristicas))
+                query = f"INSERT INTO cirurgia_caracteristicas ({colunas}) VALUES ({placeholders})"
+                valores = tuple(caracteristicas.values())
+
+                cursor.execute(query, valores)
+                conn.commit()
+            except sqlite3.Error as e:
+                print(f"Erro ao inserir características: {e}")
+                return redirect(url_for("cirurgia.adicionar_cirurgia"))
+            finally:
+                if conn:
+                    conn.close()
 
         return redirect(url_for("cirurgia.listar_cirurgias_usuario"))
 
     return render_template("adicionar_cirurgia.html")
+
 
 # ------------------------------------
 @bp_cirurgia.route("/cirurgias/<int:id>")
