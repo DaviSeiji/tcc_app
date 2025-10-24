@@ -1,14 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session
 from models.cirurgia import Cirurgia, CirurgiaCaracteristicas
-import sqlite3
-from pathlib import Path
 from utils.utils import prever_duracao
 
 bp_cirurgia = Blueprint("cirurgia", __name__)
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-db_path = BASE_DIR / "database" / "banco_cirurgias.db"
-
 
 # ------------------------------------
 # Lista de cirurgias do usuário logado
@@ -18,27 +12,18 @@ def listar_cirurgias_usuario():
     if "usuario_id" not in session:
         return redirect(url_for("usuario.pagina_login"))
 
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT id, tipo, plano, duracao_prevista, status
-        FROM cirurgias
-        WHERE usuario_id = ?
-    """, (session["usuario_id"],))
+    cirurgias_objs = Cirurgia.listar_por_usuario(session["usuario_id"])
     cirurgias = [
         {
-            "id": row[0],
-            "tipo": row[1],
-            "plano": row[2],
-            "duracao_prevista": row[3],
-            "status": row[4]
+            "id": c.id,
+            "tipo": c.tipo,
+            "plano": c.plano,
+            "duracao_prevista": c.duracao_prevista,
+            "status": c.status
         }
-        for row in cursor.fetchall()
+        for c in cirurgias_objs
     ]
-    conn.close()
-
     return render_template("cirurgias.html", cirurgias=cirurgias)
-
 
 
 # ------------------------------------
@@ -50,20 +35,17 @@ def adicionar_cirurgia():
         return redirect(url_for("usuario.pagina_login"))
 
     if request.method == "POST":
-
         tipo = request.form.get("tipo")
         plano = request.form.get("plano")
 
         if not tipo or not plano:
             return redirect(url_for("cirurgia.adicionar_cirurgia"))
 
-        # Função auxiliar
         def to_float_or_none(value):
-            if value is None or value == '':
+            if value in (None, ""):
                 return None
             return float(value)
 
-        # Dicionário das características
         caracteristicas = {
             "sex": request.form.get("sex") or None,
             "bmi": to_float_or_none(request.form.get("bmi")),
@@ -92,14 +74,8 @@ def adicionar_cirurgia():
             "faixa_etaria": request.form.get("faixa_etaria") or None
         }
 
-        # Checa se alguma característica foi preenchida
-        preencheu_alguma = any(v not in [None, ""] for v in caracteristicas.values())
-
-        # Se preencheu, prevê com IA; senão, define padrão 177
-        if preencheu_alguma:
-            duracao_prevista = prever_duracao(caracteristicas)
-        else:
-            duracao_prevista = 177
+        preencheu_alguma = any(v not in (None, "") for v in caracteristicas.values())
+        duracao_prevista = prever_duracao(caracteristicas) if preencheu_alguma else 177
 
         # Cria cirurgia
         c = Cirurgia(
@@ -107,34 +83,15 @@ def adicionar_cirurgia():
             tipo=tipo,
             plano=plano,
             duracao_prevista=duracao_prevista,
-            duracao_real=None,
             status="Pendente"
         )
         cirurgia_id = c.salvar()
 
-        if not cirurgia_id:
-            return redirect(url_for("cirurgia.adicionar_cirurgia"))
-
         # Salva características se existirem
         if preencheu_alguma:
-            try:
-                conn = sqlite3.connect(db_path)
-                cursor = conn.cursor()
-                caracteristicas["cirurgia_id"] = cirurgia_id
-
-                colunas = ", ".join(caracteristicas.keys())
-                placeholders = ", ".join(["?"] * len(caracteristicas))
-                query = f"INSERT INTO cirurgia_caracteristicas ({colunas}) VALUES ({placeholders})"
-                valores = tuple(caracteristicas.values())
-
-                cursor.execute(query, valores)
-                conn.commit()
-            except sqlite3.Error as e:
-                print(f"Erro ao inserir características: {e}")
-                return redirect(url_for("cirurgia.adicionar_cirurgia"))
-            finally:
-                if conn:
-                    conn.close()
+            caracteristicas["cirurgia_id"] = cirurgia_id
+            cc = CirurgiaCaracteristicas(**caracteristicas)
+            cc.salvar()
 
         return redirect(url_for("cirurgia.listar_cirurgias_usuario"))
 
@@ -142,65 +99,52 @@ def adicionar_cirurgia():
 
 
 # ------------------------------------
+# Ver cirurgia
+# ------------------------------------
 @bp_cirurgia.route("/cirurgias/<int:id>")
 def ver_cirurgia(id):
     cirurgia = Cirurgia.buscar_por_id(id)
     if not cirurgia:
         return redirect(url_for("cirurgia.listar_cirurgias_usuario"))
 
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM cirurgia_caracteristicas WHERE cirurgia_id=?", (id,))
-    row = cursor.fetchone()
-    conn.close()
-
-    caracteristicas = {}
-    if row:
-        colunas = [desc[0] for desc in cursor.description]
-        caracteristicas = dict(zip(colunas, row))
+    caracteristicas_list = CirurgiaCaracteristicas.listar_por_cirurgia(id)
+    caracteristicas = caracteristicas_list[0].__dict__ if caracteristicas_list else {}
 
     return render_template("ver_cirurgia.html", cirurgia=cirurgia, caracteristicas=caracteristicas)
 
+
+# ------------------------------------
+# Excluir cirurgia
+# ------------------------------------
 @bp_cirurgia.route("/excluir_cirurgias/<int:id>")
 def excluir_cirurgia(id):
-    
     cirurgia = Cirurgia.buscar_por_id(id)
-    if not cirurgia:
-        return redirect(url_for("cirurgia.listar_cirurgias_usuario"))
-
-    cirurgia.excluir()
+    if cirurgia:
+        cirurgia.excluir()
     return redirect(url_for("cirurgia.listar_cirurgias_usuario"))
 
+
+# ------------------------------------
+# Editar cirurgia
+# ------------------------------------
 @bp_cirurgia.route("/cirurgias/editar/<int:id>", methods=["GET", "POST"])
 def editar_cirurgia(id):
     if "usuario_id" not in session:
         return redirect(url_for("usuario.pagina_login"))
 
-    # Busca a cirurgia pelo ID e garante que pertence ao usuário logado
     cirurgia = Cirurgia.buscar_por_id(id)
     if not cirurgia or cirurgia.usuario_id != session["usuario_id"]:
         return redirect(url_for("cirurgia.listar_cirurgias_usuario"))
 
-    # Busca as características associadas
-    # (Assumindo que sua classe de características tenha um método para buscar por cirurgia_id)
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM cirurgia_caracteristicas WHERE cirurgia_id = ?", (id,))
-    caracteristicas_row = cursor.fetchone()
-    conn.close()
+    caracteristicas_list = CirurgiaCaracteristicas.listar_por_cirurgia(id)
+    caracteristicas = caracteristicas_list[0].__dict__ if caracteristicas_list else {}
 
     if request.method == "POST":
-        # Função auxiliar para conversão de tipo
         def to_float_or_none(value):
-            if value is None or value == '':
+            if value in (None, ""):
                 return None
-            try:
-                return float(value)
-            except (ValueError, TypeError):
-                return None
-        
-        # 1. Atualiza os dados da tabela principal 'cirurgias'
+            return float(value)
+
         cirurgia.tipo = request.form.get("tipo")
         cirurgia.plano = request.form.get("plano")
         duracao_prevista = request.form.get("duracao_prevista")
@@ -208,9 +152,8 @@ def editar_cirurgia(id):
         duracao_real = request.form.get("duracao_real")
         cirurgia.duracao_real = int(duracao_real) if duracao_real else None
         cirurgia.status = request.form.get("status")
-        cirurgia.salvar() # Salva as alterações na tabela 'cirurgias'
+        cirurgia.salvar()
 
-        # 2. Coleta todos os dados das características do formulário
         dados_caracteristicas = {
             "sex": request.form.get("sex") or None,
             "bmi": to_float_or_none(request.form.get("bmi")),
@@ -239,27 +182,16 @@ def editar_cirurgia(id):
             "faixa_etaria": request.form.get("faixa_etaria") or None
         }
 
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-
-        if caracteristicas_row:
-            # 3A. Se já existem, atualiza (UPDATE)
-            set_clause = ", ".join([f"{key} = ?" for key in dados_caracteristicas.keys()])
-            query = f"UPDATE cirurgia_caracteristicas SET {set_clause} WHERE cirurgia_id = ?"
-            valores = tuple(dados_caracteristicas.values()) + (id,)
-            cursor.execute(query, valores)
+        if caracteristicas:
+            cc = caracteristicas_list[0]
+            for k, v in dados_caracteristicas.items():
+                setattr(cc, k, v)
+            cc.salvar()
         else:
-            # 3B. Se não existem, insere (INSERT)
-            dados_caracteristicas['cirurgia_id'] = id
-            colunas = ", ".join(dados_caracteristicas.keys())
-            placeholders = ", ".join(["?"] * len(dados_caracteristicas))
-            query = f"INSERT INTO cirurgia_caracteristicas ({colunas}) VALUES ({placeholders})"
-            valores = tuple(dados_caracteristicas.values())
-            cursor.execute(query, valores)
-        
-        conn.commit()
-        conn.close()
+            dados_caracteristicas["cirurgia_id"] = id
+            cc = CirurgiaCaracteristicas(**dados_caracteristicas)
+            cc.salvar()
+
         return redirect(url_for("cirurgia.listar_cirurgias_usuario"))
 
-    # Passa os dados para o template no método GET
-    return render_template("editar_cirurgia.html", cirurgia=cirurgia, caracteristicas=caracteristicas_row)
+    return render_template("editar_cirurgia.html", cirurgia=cirurgia, caracteristicas=caracteristicas)

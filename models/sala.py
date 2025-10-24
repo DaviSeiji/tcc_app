@@ -1,7 +1,4 @@
-import sqlite3
-from pathlib import Path
-
-db_path = Path(__file__).parent / "banco_cirurgias.db"
+from utils.db import supabase
 
 class Sala:
     def __init__(self, usuario_id, nome, horario_seg=None, horario_sab=None, horario_dom=None, id=None):
@@ -13,47 +10,58 @@ class Sala:
         self.horario_dom = horario_dom
 
     def salvar(self):
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
+        data = {
+            "usuario_id": self.usuario_id,
+            "nome": self.nome,
+            "horario_seg": self.horario_seg,
+            "horario_sab": self.horario_sab,
+            "horario_dom": self.horario_dom
+        }
+
         if self.id is None:
-            cursor.execute("""
-                INSERT INTO salas (usuario_id, nome, horario_seg, horario_sab, horario_dom)
-                VALUES (?, ?, ?, ?, ?)
-            """, (self.usuario_id, self.nome, self.horario_seg, self.horario_sab, self.horario_dom))
-            self.id = cursor.lastrowid
+            response = supabase.table("salas").insert(data).execute()
+            if response.error:
+                raise Exception(f"Erro ao salvar sala: {response.error.message}")
+            self.id = response.data[0]["id"]
         else:
-            cursor.execute("""
-                UPDATE salas
-                SET nome=?, horario_seg=?, horario_sab=?, horario_dom=?
-                WHERE id=?
-            """, (self.nome, self.horario_seg, self.horario_sab, self.horario_dom, self.id))
-        conn.commit()
-        conn.close()
+            response = supabase.table("salas").update(data).eq("id", self.id).execute()
+            if response.error:
+                raise Exception(f"Erro ao atualizar sala: {response.error.message}")
 
     def excluir(self):
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM salas WHERE id=?", (self.id,))
-        conn.commit()
-        conn.close()
+        if self.id is None:
+            return
+        response = supabase.table("salas").delete().eq("id", self.id).execute()
+        if response.error:
+            raise Exception(f"Erro ao excluir sala: {response.error.message}")
 
     @staticmethod
     def listar_por_usuario(usuario_id):
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-        cursor.execute("SELECT id, nome, horario_seg, horario_sab, horario_dom FROM salas WHERE usuario_id=?", (usuario_id,))
-        rows = cursor.fetchall()
-        conn.close()
-        return [Sala(usuario_id, nome=row[1], horario_seg=row[2], horario_sab=row[3], horario_dom=row[4], id=row[0])
-                for row in rows]
+        response = supabase.table("salas").select("*").eq("usuario_id", usuario_id).execute()
+        if response.error:
+            raise Exception(f"Erro ao listar salas: {response.error.message}")
+        return [Sala(
+                    usuario_id=row["usuario_id"],
+                    nome=row["nome"],
+                    horario_seg=row.get("horario_seg"),
+                    horario_sab=row.get("horario_sab"),
+                    horario_dom=row.get("horario_dom"),
+                    id=row["id"]
+                ) for row in response.data]
 
     @staticmethod
     def buscar_por_id(sala_id):
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-        cursor.execute("SELECT usuario_id, nome, horario_seg, horario_sab, horario_dom FROM salas WHERE id=?", (sala_id,))
-        row = cursor.fetchone()
-        conn.close()
+        response = supabase.table("salas").select("*").eq("id", sala_id).single().execute()
+        if response.error:
+            return None
+        row = response.data
         if row:
-            return Sala(row[0], nome=row[1], horario_seg=row[2], horario_sab=row[3], horario_dom=row[4], id=sala_id)
+            return Sala(
+                usuario_id=row["usuario_id"],
+                nome=row["nome"],
+                horario_seg=row.get("horario_seg"),
+                horario_sab=row.get("horario_sab"),
+                horario_dom=row.get("horario_dom"),
+                id=row["id"]
+            )
         return None

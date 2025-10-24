@@ -1,8 +1,5 @@
-import sqlite3
-import os
 from werkzeug.security import generate_password_hash, check_password_hash
-
-DB_PATH = os.path.join(os.path.dirname(__file__), '../database/banco_cirurgias.db')
+from utils.db import supabase
 
 class Usuario:
     def __init__(self, id=None, nome=None, email=None, senha=None):
@@ -11,31 +8,42 @@ class Usuario:
         self.email = email
         self.senha = senha
 
-    @staticmethod
-    def conectar():
-        return sqlite3.connect(DB_PATH)
-
+    # ----------------------------
+    # SALVAR NOVO USUÁRIO
+    # ----------------------------
     def salvar(self):
-        conn = self.conectar()
-        cur = conn.cursor()
-        cur.execute("""
-            INSERT INTO usuarios (nome, email, senha)
-            VALUES (?, ?, ?)
-        """, (self.nome, self.email, self.senha))
-        conn.commit()
-        conn.close()
+        try:
+            response = supabase.table("usuarios").insert({
+                "nome": self.nome,
+                "email": self.email,
+                "senha": self.senha
+            }).execute()
 
+            if response.data:
+                self.id = response.data[0]["id"]
+                return self.id
+        except Exception as e:
+            print(f"❌ Erro ao salvar usuário: {e}")
+            return None
+
+    # ----------------------------
+    # BUSCAR POR EMAIL
+    # ----------------------------
     @staticmethod
     def buscar_por_email(email):
-        conn = Usuario.conectar()
-        cur = conn.cursor()
-        cur.execute("SELECT id, nome, email, senha FROM usuarios WHERE email = ?", (email,))
-        row = cur.fetchone()
-        conn.close()
-        if row:
-            return Usuario(*row)
+        try:
+            response = supabase.table("usuarios").select("*").eq("email", email).execute()
+            data = response.data
+            if data and len(data) > 0:
+                row = data[0]
+                return Usuario(row["id"], row["nome"], row["email"], row["senha"])
+        except Exception as e:
+            print(f"❌ Erro ao buscar usuário por email: {e}")
         return None
 
+    # ----------------------------
+    # HASH E VERIFICAÇÃO DE SENHA
+    # ----------------------------
     def set_password(self, senha):
         self.senha = generate_password_hash(senha)
 

@@ -1,9 +1,4 @@
-import sqlite3
-from pathlib import Path
-import os
-
-DB_PATH = os.path.join(os.path.dirname(__file__), '../database/banco_cirurgias.db')
-
+from utils.db import supabase
 
 # ----------------------------
 # Classe Cirurgia
@@ -19,56 +14,69 @@ class Cirurgia:
         self.status = status
 
     def salvar(self):
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
         if self.id is None:
-            cursor.execute("""
-                INSERT INTO cirurgias (usuario_id, tipo, plano, duracao_prevista, duracao_real, status)
-                VALUES (?, ?, ?, ?, ?, ?)
-            """, (self.usuario_id, self.tipo, self.plano, self.duracao_prevista, self.duracao_real, self.status))
-            self.id = cursor.lastrowid 
+            # Inserir nova cirurgia
+            data = {
+                "usuario_id": self.usuario_id,
+                "tipo": self.tipo,
+                "plano": self.plano,
+                "duracao_prevista": self.duracao_prevista,
+                "duracao_real": self.duracao_real,
+                "status": self.status
+            }
+            res = supabase.table("cirurgias").insert(data).execute()
+            if res.data and len(res.data) > 0:
+                self.id = res.data[0]["id"]
         else:
-            cursor.execute("""
-                UPDATE cirurgias
-                SET tipo=?, plano=?, duracao_prevista=?, duracao_real=?, status=?
-                WHERE id=?
-            """, (self.tipo, self.plano, self.duracao_prevista, self.duracao_real, self.status, self.id))
-        conn.commit()
-        conn.close()
-        return self.id 
-
+            # Atualizar existente
+            data = {
+                "tipo": self.tipo,
+                "plano": self.plano,
+                "duracao_prevista": self.duracao_prevista,
+                "duracao_real": self.duracao_real,
+                "status": self.status
+            }
+            supabase.table("cirurgias").update(data).eq("id", self.id).execute()
+        return self.id
 
     def excluir(self):
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        # Excluir características antes
-        cursor.execute("DELETE FROM cirurgia_caracteristicas WHERE cirurgia_id=?", (self.id,))
-        # Excluir a cirurgia
-        cursor.execute("DELETE FROM cirurgias WHERE id=?", (self.id,))
-        conn.commit()
-        conn.close()
+        # Excluir características
+        supabase.table("cirurgia_caracteristicas").delete().eq("cirurgia_id", self.id).execute()
+        # Excluir cirurgia
+        supabase.table("cirurgias").delete().eq("id", self.id).execute()
 
     @staticmethod
     def listar_por_usuario(usuario_id):
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute("SELECT id, tipo, plano, duracao_prevista, duracao_real, status FROM cirurgias WHERE usuario_id=?", (usuario_id,))
-        rows = cursor.fetchall()
-        conn.close()
-        return [Cirurgia(usuario_id, tipo, plano, duracao_prevista, duracao_real, status, id=row[0])
-                for row in rows for tipo, plano, duracao_prevista, duracao_real, status in [row[1:]]]
+        res = supabase.table("cirurgias").select("*").eq("usuario_id", usuario_id).execute()
+        cirurgias = []
+        if res.data:
+            for row in res.data:
+                cirurgias.append(Cirurgia(
+                    usuario_id=row["usuario_id"],
+                    tipo=row["tipo"],
+                    plano=row["plano"],
+                    duracao_prevista=row.get("duracao_prevista"),
+                    duracao_real=row.get("duracao_real"),
+                    status=row.get("status", "pendente"),
+                    id=row["id"]
+                ))
+        return cirurgias
 
     @staticmethod
     def buscar_por_id(cirurgia_id):
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute("SELECT usuario_id, tipo, plano, duracao_prevista, duracao_real, status FROM cirurgias WHERE id=?", (cirurgia_id,))
-        row = cursor.fetchone()
-        conn.close()
-        if row:
-            return Cirurgia(row[0], row[1], row[2], row[3], row[4], row[5], id=cirurgia_id)
+        res = supabase.table("cirurgias").select("*").eq("id", cirurgia_id).execute()
+        if res.data and len(res.data) > 0:
+            row = res.data[0]
+            return Cirurgia(
+                usuario_id=row["usuario_id"],
+                tipo=row["tipo"],
+                plano=row["plano"],
+                duracao_prevista=row.get("duracao_prevista"),
+                duracao_real=row.get("duracao_real"),
+                status=row.get("status", "pendente"),
+                id=row["id"]
+            )
         return None
-
 
 
 # ----------------------------
@@ -109,66 +117,82 @@ class CirurgiaCaracteristicas:
         self.preop_cr = preop_cr
         self.faixa_etaria = faixa_etaria
 
-    @staticmethod
-    def conectar():
-        return sqlite3.connect(DB_PATH)
-
     def salvar(self):
-        conn = self.conectar()
-        cursor = conn.cursor()
+        data = {
+            "cirurgia_id": self.cirurgia_id,
+            "opdur": self.opdur,
+            "sex": self.sex,
+            "bmi": self.bmi,
+            "asa": self.asa,
+            "emop": self.emop,
+            "department": self.department,
+            "optype": self.optype,
+            "approach": self.approach,
+            "position": self.position,
+            "ane_type": self.ane_type,
+            "preop_htn": self.preop_htn,
+            "preop_dm": self.preop_dm,
+            "preop_pft": self.preop_pft,
+            "preop_hb": self.preop_hb,
+            "preop_plt": self.preop_plt,
+            "preop_pt": self.preop_pt,
+            "preop_aptt": self.preop_aptt,
+            "preop_na": self.preop_na,
+            "preop_k": self.preop_k,
+            "preop_glucose": self.preop_glucose,
+            "preop_alb": self.preop_alb,
+            "preop_got": self.preop_got,
+            "preop_gpt": self.preop_gpt,
+            "preop_bun": self.preop_bun,
+            "preop_cr": self.preop_cr,
+            "faixa_etaria": self.faixa_etaria
+        }
+
         if self.id is None:
-            cursor.execute("""
-                INSERT INTO cirurgia_caracteristicas (
-                    cirurgia_id, opdur, sex, bmi, asa, emop, department, optype, approach, position, ane_type,
-                    preop_htn, preop_dm, preop_pft, preop_hb, preop_plt, preop_pt, preop_aptt, preop_na,
-                    preop_k, preop_glucose, preop_alb, preop_got, preop_gpt, preop_bun, preop_cr, faixa_etaria
-                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-            """, (
-                self.cirurgia_id, self.opdur, self.sex, self.bmi, self.asa, self.emop, self.department,
-                self.optype, self.approach, self.position, self.ane_type, self.preop_htn, self.preop_dm,
-                self.preop_pft, self.preop_hb, self.preop_plt, self.preop_pt, self.preop_aptt, self.preop_na,
-                self.preop_k, self.preop_glucose, self.preop_alb, self.preop_got, self.preop_gpt,
-                self.preop_bun, self.preop_cr, self.faixa_etaria
-            ))
-            self.id = cursor.lastrowid
+            res = supabase.table("cirurgia_caracteristicas").insert(data).execute()
+            if res.data and len(res.data) > 0:
+                self.id = res.data[0]["id"]
         else:
-            cursor.execute("""
-                UPDATE cirurgia_caracteristicas SET
-                    opdur=?, sex=?, bmi=?, asa=?, emop=?, department=?, optype=?, approach=?, position=?, ane_type=?,
-                    preop_htn=?, preop_dm=?, preop_pft=?, preop_hb=?, preop_plt=?, preop_pt=?, preop_aptt=?, preop_na=?,
-                    preop_k=?, preop_glucose=?, preop_alb=?, preop_got=?, preop_gpt=?, preop_bun=?, preop_cr=?, faixa_etaria=?
-                WHERE id=?
-            """, (
-                self.opdur, self.sex, self.bmi, self.asa, self.emop, self.department,
-                self.optype, self.approach, self.position, self.ane_type, self.preop_htn, self.preop_dm,
-                self.preop_pft, self.preop_hb, self.preop_plt, self.preop_pt, self.preop_aptt, self.preop_na,
-                self.preop_k, self.preop_glucose, self.preop_alb, self.preop_got, self.preop_gpt,
-                self.preop_bun, self.preop_cr, self.faixa_etaria, self.id
-            ))
-        conn.commit()
-        conn.close()
+            supabase.table("cirurgia_caracteristicas").update(data).eq("id", self.id).execute()
 
     def deletar(self):
-        conn = self.conectar()
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM cirurgia_caracteristicas WHERE id=?", (self.id,))
-        conn.commit()
-        conn.close()
+        if self.id:
+            supabase.table("cirurgia_caracteristicas").delete().eq("id", self.id).execute()
 
     @staticmethod
     def listar_por_cirurgia(cirurgia_id):
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM cirurgia_caracteristicas WHERE cirurgia_id=?", (cirurgia_id,))
-        rows = cursor.fetchall()
-        conn.close()
-        return [CirurgiaCaracteristicas(
-                    cirurgia_id=row[1], opdur=row[2], sex=row[3], bmi=row[4], asa=row[5], emop=row[6],
-                    department=row[7], optype=row[8], approach=row[9], position=row[10], ane_type=row[11],
-                    preop_htn=row[12], preop_dm=row[13], preop_pft=row[14], preop_hb=row[15], preop_plt=row[16],
-                    preop_pt=row[17], preop_aptt=row[18], preop_na=row[19], preop_k=row[20], preop_glucose=row[21],
-                    preop_alb=row[22], preop_got=row[23], preop_gpt=row[24], preop_bun=row[25], preop_cr=row[26],
-                    faixa_etaria=row[27], id=row[0]
-                ) for row in rows]
-
-
+        res = supabase.table("cirurgia_caracteristicas").select("*").eq("cirurgia_id", cirurgia_id).execute()
+        caracs = []
+        if res.data:
+            for row in res.data:
+                caracs.append(CirurgiaCaracteristicas(
+                    cirurgia_id=row["cirurgia_id"],
+                    opdur=row.get("opdur"),
+                    sex=row.get("sex"),
+                    bmi=row.get("bmi"),
+                    asa=row.get("asa"),
+                    emop=row.get("emop"),
+                    department=row.get("department"),
+                    optype=row.get("optype"),
+                    approach=row.get("approach"),
+                    position=row.get("position"),
+                    ane_type=row.get("ane_type"),
+                    preop_htn=row.get("preop_htn"),
+                    preop_dm=row.get("preop_dm"),
+                    preop_pft=row.get("preop_pft"),
+                    preop_hb=row.get("preop_hb"),
+                    preop_plt=row.get("preop_plt"),
+                    preop_pt=row.get("preop_pt"),
+                    preop_aptt=row.get("preop_aptt"),
+                    preop_na=row.get("preop_na"),
+                    preop_k=row.get("preop_k"),
+                    preop_glucose=row.get("preop_glucose"),
+                    preop_alb=row.get("preop_alb"),
+                    preop_got=row.get("preop_got"),
+                    preop_gpt=row.get("preop_gpt"),
+                    preop_bun=row.get("preop_bun"),
+                    preop_cr=row.get("preop_cr"),
+                    faixa_etaria=row.get("faixa_etaria"),
+                    id=row["id"]
+                ))
+        return caracs
