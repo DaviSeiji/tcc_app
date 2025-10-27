@@ -1,67 +1,84 @@
 from utils.db import supabase
 
+# ----------------------------
+# Classe Sala
+# ----------------------------
 class Sala:
-    def __init__(self, usuario_id, nome, horario_seg=None, horario_sab=None, horario_dom=None, id=None):
+    def __init__(self, usuario_id, nome,
+                 horario_seg_inicio, horario_seg_fim,
+                 horario_sab_inicio, horario_sab_fim,
+                 horario_dom_inicio, horario_dom_fim,
+                 id=None):
         self.id = id
         self.usuario_id = usuario_id
         self.nome = nome
-        self.horario_seg = horario_seg
-        self.horario_sab = horario_sab
-        self.horario_dom = horario_dom
+        self.horario_seg_inicio = horario_seg_inicio
+        self.horario_seg_fim = horario_seg_fim
+        self.horario_sab_inicio = horario_sab_inicio
+        self.horario_sab_fim = horario_sab_fim
+        self.horario_dom_inicio = horario_dom_inicio
+        self.horario_dom_fim = horario_dom_fim
 
     def salvar(self):
         data = {
             "usuario_id": self.usuario_id,
             "nome": self.nome,
-            "horario_seg": self.horario_seg,
-            "horario_sab": self.horario_sab,
-            "horario_dom": self.horario_dom
+            "horario_seg_inicio": self.horario_seg_inicio,
+            "horario_seg_fim": self.horario_seg_fim,
+            "horario_sab_inicio": self.horario_sab_inicio,
+            "horario_sab_fim": self.horario_sab_fim,
+            "horario_dom_inicio": self.horario_dom_inicio,
+            "horario_dom_fim": self.horario_dom_fim
         }
 
         if self.id is None:
-            response = supabase.table("salas").insert(data).execute()
-            if response.error:
-                raise Exception(f"Erro ao salvar sala: {response.error.message}")
-            self.id = response.data[0]["id"]
+            # Inserir nova sala
+            res = supabase.table("salas").insert(data).execute()
+            if res.data and len(res.data) > 0:
+                self.id = res.data[0]["id"]
         else:
-            response = supabase.table("salas").update(data).eq("id", self.id).execute()
-            if response.error:
-                raise Exception(f"Erro ao atualizar sala: {response.error.message}")
+            # Atualizar sala existente
+            supabase.table("salas").update(data).eq("id", self.id).execute()
+        return self.id
 
     def excluir(self):
         if self.id is None:
             return
-        response = supabase.table("salas").delete().eq("id", self.id).execute()
-        if response.error:
-            raise Exception(f"Erro ao excluir sala: {response.error.message}")
+        supabase.table("salas").delete().eq("id", self.id).execute()
 
     @staticmethod
     def listar_por_usuario(usuario_id):
-        response = supabase.table("salas").select("*").eq("usuario_id", usuario_id).execute()
-        if response.error:
-            raise Exception(f"Erro ao listar salas: {response.error.message}")
-        return [Sala(
+        res = supabase.table("salas").select("*").eq("usuario_id", usuario_id).execute()
+        salas = []
+        if res.data:
+            for row in res.data:
+                salas.append(Sala(
                     usuario_id=row["usuario_id"],
                     nome=row["nome"],
-                    horario_seg=row.get("horario_seg"),
-                    horario_sab=row.get("horario_sab"),
-                    horario_dom=row.get("horario_dom"),
+                    horario_seg_inicio=row["horario_seg_inicio"],
+                    horario_seg_fim=row["horario_seg_fim"],
+                    horario_sab_inicio=row["horario_sab_inicio"],
+                    horario_sab_fim=row["horario_sab_fim"],
+                    horario_dom_inicio=row["horario_dom_inicio"],
+                    horario_dom_fim=row["horario_dom_fim"],
                     id=row["id"]
-                ) for row in response.data]
+                ))
+        return salas
 
     @staticmethod
     def buscar_por_id(sala_id):
-        response = supabase.table("salas").select("*").eq("id", sala_id).single().execute()
-        if response.error:
-            return None
-        row = response.data
-        if row:
+        res = supabase.table("salas").select("*").eq("id", sala_id).single().execute()
+        if res.data:
+            row = res.data
             return Sala(
                 usuario_id=row["usuario_id"],
                 nome=row["nome"],
-                horario_seg=row.get("horario_seg"),
-                horario_sab=row.get("horario_sab"),
-                horario_dom=row.get("horario_dom"),
+                horario_seg_inicio=row["horario_seg_inicio"],
+                horario_seg_fim=row["horario_seg_fim"],
+                horario_sab_inicio=row["horario_sab_inicio"],
+                horario_sab_fim=row["horario_sab_fim"],
+                horario_dom_inicio=row["horario_dom_inicio"],
+                horario_dom_fim=row["horario_dom_fim"],
                 id=row["id"]
             )
         return None

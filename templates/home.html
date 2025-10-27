@@ -14,7 +14,7 @@
         </div>
         <div class="nav-links">
             <a href="{{ url_for('cirurgia.listar_cirurgias_usuario') }}">Cirurgias</a>
-            <a href="#">Salas</a>
+            <a href="{{ url_for('sala.listar_salas_usuario') }}">Salas</a>
             <a href="#">Agendamento</a>
             <a href="#">Dados</a>
             <a href="{{ url_for('usuario.logout') }}" class="btn-primary">Sair</a>
@@ -28,7 +28,7 @@
             <p>Escolha uma opção abaixo para começar a gerenciar suas cirurgias:</p>
             <div class="botoes-home">
                 <a href="{{ url_for('cirurgia.listar_cirurgias_usuario') }}">Cirurgias</a>
-                <a href="#">Salas</a>
+                <a href="{{ url_for('sala.listar_salas_usuario') }}">Salas</a>
                 <a href="#">Agendamento</a>
                 <a href="#">Dados</a>
             </div>

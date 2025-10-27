@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salas - Agenda Cirúrgica</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* ======== Layout geral ======== */
+        body {
+            background-color: #121212;
+            color: #f5f5f5;
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .hero-content {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        /* ======== Container de cards ======== */
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            justify-content: center;
+            align-items: start;
+            margin: 30px auto 0;
+            max-width: 1000px;
+            padding: 0 10px;
+        }
+
+        /* ======== Card ======== */
+        .sala-card {
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+            padding: 18px;
+            border-radius: 12px;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.45);
+            color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.5s ease;
+            opacity: 0;
+            animation: fadeIn 0.6s ease forwards;
+        }
+
+        /* Animação de fade-in */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .sala-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+        }
+
+        /* ======== Header do card ======== */
+        .sala-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sala-nome {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0;
+        }
+
+        /* ======== Informações ======== */
+        .sala-info {
+            margin-top: 10px;
+            font-size: 0.95rem;
+            color: #cfcfcf;
+            line-height: 1.4;
+        }
+
+        .horario {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            margin-top: 6px;
+            font-size: 0.92rem;
+        }
+
+        .horario span.label {
+            color: #9aa0a6;
+            font-weight: 600;
+        }
+
+        .horario span.value {
+            color: #e6e6e6;
+            text-align: right;
+        }
+
+        /* ======== Botões ======== */
+        .card-actions {
+            margin-top: 16px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn-icon {
+            color: #fff;
+            border: none;
+            padding: 8px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.15s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95em;
+            text-decoration: none;
+        }
+
+        .btn-view { background-color: #3498db; }
+        .btn-edit { background-color: #f1c40f; color: #111; }
+        .btn-delete { background-color: #e74c3c; }
+
+        .btn-icon:hover {
+            transform: translateY(-2px);
+            opacity: 0.95;
+        }
+
+        /* ======== Outros ======== */
+        .btn-link {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        .btn-link:hover {
+            text-decoration: underline;
+        }
+
+        .sem-salas {
+            margin-top: 18px;
+            font-size: 1.05rem;
+            color: #bdbdbd;
+            text-align: center;
+        }
+
+        /* ======== Navbar ======== */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #181818;
+            padding: 12px 24px;
+            border-bottom: 1px solid #333;
+        }
+
+        .navbar a {
+            color: #f5f5f5;
+            text-decoration: none;
+            margin-left: 18px;
+            transition: color 0.2s;
+        }
+
+        .navbar a:hover {
+            color: #3498db;
+        }
+
+        .navbar .active {
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .logo-link {
+            font-weight: 700;
+            color: #fff;
+            font-size: 1.2rem;
+        }
+
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">
+            <a href="{{ url_for('usuario.home') }}" class="logo-link">Agenda Cirúrgica</a>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('cirurgia.listar_cirurgias_usuario') }}">Cirurgias</a>
+            <a href="{{ url_for('sala.listar_salas_usuario') }}" class="active">Salas</a>
+            <a href="#">Agendamento</a>
+            <a href="#">Dados</a>
+            <a href="{{ url_for('usuario.logout') }}" class="btn-primary">Sair</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Minhas Salas</h1>
+
+            <a href="{{ url_for('sala.adicionar_sala') }}" class="btn-link">
+                + Adicionar Sala
+            </a>
+
+            {% if salas %}
+            <div class="cards-container">
+                {% for s in salas %}
+                <div class="sala-card">
+                    <div class="sala-header">
+                        <h2 class="sala-nome">{{ s.nome }}</h2>
+                    </div>
+
+                    <div class="sala-info">
+                        <div class="horario">
+                            <span class="label">Segunda - Sexta:</span>
+                            <span class="value">
+                                {% if s.horario_seg_inicio and s.horario_seg_fim %}
+                                    {{ s.horario_seg_inicio[:5] }} - {{ s.horario_seg_fim[:5] }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="horario">
+                            <span class="label">Sábado:</span>
+                            <span class="value">
+                                {% if s.horario_sab_inicio and s.horario_sab_fim %}
+                                    {{ s.horario_sab_inicio[:5] }} - {{ s.horario_sab_fim[:5] }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="horario">
+                            <span class="label">Domingo:</span>
+                            <span class="value">
+                                {% if s.horario_dom_inicio and s.horario_dom_fim %}
+                                    {{ s.horario_dom_inicio[:5] }} - {{ s.horario_dom_fim[:5] }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="card-actions">
+                        <a href="{{ url_for('sala.ver_sala', id=s.id) }}" class="btn-icon btn-view" title="Ver Sala">
+                            <i class="fa-solid fa-eye"></i>
+                        </a>
+                        <a href="{{ url_for('sala.editar_sala', id=s.id) }}" class="btn-icon btn-edit" title="Editar Sala">
+                            <i class="fa-solid fa-pen"></i>
+                        </a>
+                        <a href="{{ url_for('sala.excluir_sala', id=s.id) }}" class="btn-icon btn-delete"
+                        title="Excluir Sala" onclick="return confirm('Tem certeza que deseja excluir esta sala?')">
+                            <i class="fa-solid fa-trash"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="sem-salas">Você ainda não possui salas cadastradas.</p>
+            {% endif %}
+        </div>
+    </section>
+</body>
+</html>
