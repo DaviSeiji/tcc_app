@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes da Sala - Agenda Cirúrgica</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            color: #f5f5f5;
+            background-color: #121212;
+        }
+
+        .detalhes-container {
+            background-color: #1e1e1e;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .detalhes-item {
+            margin-bottom: 15px;
+        }
+
+        .detalhes-item strong {
+            color: #bbb;
+            display: inline-block;
+            width: 220px;
+        }
+
+        .botoes-acoes {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .btn {
+            color: #fff;
+            text-decoration: none;
+            margin: 0 8px;
+            padding: 10px 18px;
+            border-radius: 6px;
+            transition: 0.3s;
+        }
+
+        .btn:hover { opacity: 0.85; }
+
+        .btn-voltar { background-color: #3498db; }
+        .btn-editar { background-color: #f1c40f; color: #000; }
+        .btn-excluir { background-color: #e74c3c; }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">
+            <a href="{{ url_for('usuario.home') }}" class="logo-link">Agenda Cirúrgica</a>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('cirurgia.listar_cirurgias_usuario') }}">Cirurgias</a>
+            <a href="{{ url_for('sala.listar_salas_usuario') }}" class="active">Salas</a>
+            <a href="#">Agendamento</a>
+            <a href="#">Dados</a>
+            <a href="{{ url_for('usuario.logout') }}" class="btn-primary">Sair</a>
+        </div>
+    </nav>
+
+    <!-- Conteúdo principal -->
+    <div class="detalhes-container">
+        <h1>Detalhes da Sala</h1>
+
+        <div class="detalhes-item"><strong>Nome da Sala:</strong> {{ sala.nome }}</div>
+
+        <div class="detalhes-item"><strong>Segunda a Sexta:</strong> 
+            {{ sala.horario_seg_inicio }} às {{ sala.horario_seg_fim }}
+        </div>
+
+        <div class="detalhes-item"><strong>Sábado:</strong> 
+            {{ sala.horario_sab_inicio }} às {{ sala.horario_sab_fim }}
+        </div>
+
+        <div class="detalhes-item"><strong>Domingo:</strong> 
+            {% if sala.horario_dom_inicio == "00:00" and sala.horario_dom_fim == "00:00" %}
+                Fechada
+            {% else %}
+                {{ sala.horario_dom_inicio }} às {{ sala.horario_dom_fim }}
+            {% endif %}
+        </div>
+
+        <div class="botoes-acoes">
+            <a href="{{ url_for('sala.listar_salas_usuario') }}" class="btn btn-voltar">
+                <i class="fa-solid fa-arrow-left"></i> Voltar
+            </a>
+            <a href="{{ url_for('sala.editar_sala', id=sala.id) }}" class="btn btn-editar">
+                <i class="fa-solid fa-pen"></i> Editar
+            </a>
+            <a href="{{ url_for('sala.excluir_sala', id=sala.id) }}" class="btn btn-excluir" onclick="return confirm('Deseja realmente excluir esta sala?')">
+                <i class="fa-solid fa-trash"></i> Excluir
+            </a>
+        </div>
+    </div>
+</body>
+</html>
