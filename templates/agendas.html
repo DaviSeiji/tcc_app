@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cirurgias - Agenda Cirúrgica</title>
+    <title>Agendas - Agenda Cirúrgica</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <!-- Font Awesome para ícones -->
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .tabela-cirurgias {
+        .tabela-agendas {
             width: 100%;
             border-collapse: collapse;
             margin-top: 25px;
@@ -19,22 +19,22 @@
             overflow: hidden;
         }
 
-        .tabela-cirurgias th, .tabela-cirurgias td {
+        .tabela-agendas th, .tabela-agendas td {
             border: 1px solid #333;
             padding: 12px 15px;
             text-align: center;
         }
 
-        .tabela-cirurgias th {
+        .tabela-agendas th {
             background-color: #2d2d2d;
             font-weight: bold;
         }
 
-        .tabela-cirurgias tr:nth-child(even) {
+        .tabela-agendas tr:nth-child(even) {
             background-color: #252525;
         }
 
-        .tabela-cirurgias tr:hover {
+        .tabela-agendas tr:hover {
             background-color: #333;
             transition: 0.2s ease-in-out;
         }
@@ -63,7 +63,7 @@
             transform: scale(1.05);
         }
 
-        .sem-cirurgias {
+        .sem-agendas {
             margin-top: 30px;
             font-size: 1.1em;
             color: #bbb;
@@ -93,9 +93,9 @@
             <a href="{{ url_for('usuario.home') }}" class="logo-link">Agenda Cirúrgica</a>
         </div>
         <div class="nav-links">
-            <a href="{{ url_for('cirurgia.listar_cirurgias_usuario') }}" class="active">Cirurgias</a>
+            <a href="{{ url_for('cirurgia.listar_cirurgias_usuario') }}">Cirurgias</a>
             <a href="{{ url_for('sala.listar_salas_usuario') }}">Salas</a>
-            <a href="{{ url_for('agenda.listar_agendas_usuario') }}">Agendamento</a>
+            <a href="{{ url_for('agenda.listar_agendas_usuario') }}" class="active">Agendamento</a>
             <a href="{{ url_for('dados.dados_usuario') }}">Dados</a>
             <a href="{{ url_for('usuario.logout') }}" class="btn-primary">Sair</a>
         </div>
@@ -104,47 +104,48 @@
     <!-- Conteúdo -->
     <section class="hero">
         <div class="hero-content">
-            <h1>Minhas Cirurgias</h1>
+            <h1>Minhas Agendas</h1>
 
-            <a href="{{ url_for('cirurgia.adicionar_cirurgia') }}" class="btn-link">
-                + Adicionar Cirurgia
+            <a href="{{ url_for('agenda.adicionar_agenda') }}" class="btn-link">
+                + Agendar Manualmente
             </a>
 
-            {% if cirurgias %}
-            <table class="tabela-cirurgias">
-                <thead>
-                    <tr>
-                        <th>Tipo</th>
-                        <th>Plano</th>
-                        <th>Duração Prevista (min)</th>
-                        <th>Status</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for c in cirurgias %}
-                    <tr>
-                        <td>{{ c.tipo }}</td>
-                        <td>{{ c.plano }}</td>
-                        <td>{{ c.duracao_prevista if c.duracao_prevista else '—' }}</td>
-                        <td>{{ c.status }}</td>
-                        <td>
-                            <a href="{{ url_for('cirurgia.ver_cirurgia', id=c.id) }}" class="btn-icon btn-view" title="Ver Detalhes">
-                                <i class="fa-solid fa-plus"></i>
-                            </a>
-                            <a href="{{ url_for('cirurgia.editar_cirurgia', id=c.id) }}" class="btn-icon btn-edit" title="Editar">
-                                <i class="fa-solid fa-pen"></i>
-                            </a>
-                            <a href="{{ url_for('cirurgia.excluir_cirurgia', id=c.id) }}" class="btn-icon btn-delete" title="Excluir" onclick="return confirm('Tem certeza que deseja excluir esta cirurgia?')">
-                                <i class="fa-solid fa-trash"></i>
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-            <p class="sem-cirurgias">Você ainda não possui cirurgias cadastradas.</p>
+
+            {% if agendas %}
+                <table class="tabela-agendas">
+                    <thead>
+                        <tr>
+                            <th>Cirurgia</th>
+                            <th>Sala</th>
+                            <th>Dia</th>
+                            <th>Hora</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in agendas %}
+                        <tr>
+                            <td>{{ a.cirurgia }}</td>
+                            <td>{{ a.sala }}</td>
+                            <td>{{ a.dia }}</td>
+                            <td>{{ a.hora }}</td>
+                            <td>
+                                <a href="{{ url_for('agenda.ver_agenda', id=a.id) }}" class="btn-icon btn-view" title="Ver Detalhes">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                                <a href="{{ url_for('agenda.editar_agenda', id=a.id) }}" class="btn-icon btn-edit" title="Editar">
+                                    <i class="fa-solid fa-pen"></i>
+                                </a>
+                                <a href="{{ url_for('agenda.excluir_agenda', id=a.id) }}" class="btn-icon btn-delete" title="Excluir" onclick="return confirm('Tem certeza que deseja excluir este agendamento?')">
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="sem-agendas">Você ainda não possui agendas cadastradas.</p>
             {% endif %}
         </div>
     </section>

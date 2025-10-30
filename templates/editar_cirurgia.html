@@ -36,9 +36,9 @@
     </div>
     <div class="nav-links">
         <a href="{{ url_for('cirurgia.listar_cirurgias_usuario') }}">Cirurgias</a>
-        <a href="#">Salas</a>
-        <a href="#">Agendamento</a>
-        <a href="#">Dados</a>
+        <a href="{{ url_for('sala.listar_salas_usuario') }}">Salas</a>
+        <a href="{{ url_for('agenda.listar_agendas_usuario') }}">Agendamento</a>
+        <a href="{{ url_for('dados.dados_usuario') }}">Dados</a>
         <a href="{{ url_for('usuario.logout') }}" class="btn-primary">Sair</a>
     </div>
 </nav>

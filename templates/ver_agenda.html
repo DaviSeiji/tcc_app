@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detalhes da Sala - Agenda Cirúrgica</title>
+    <title>Detalhes do Agendamento - Agenda Cirúrgica</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -66,8 +66,8 @@
         </div>
         <div class="nav-links">
             <a href="{{ url_for('cirurgia.listar_cirurgias_usuario') }}">Cirurgias</a>
-            <a href="{{ url_for('sala.listar_salas_usuario') }}" class="active">Salas</a>
-            <a href="{{ url_for('agenda.listar_agendas_usuario') }}">Agendamento</a>
+            <a href="{{ url_for('sala.listar_salas_usuario') }}">Salas</a>
+            <a href="{{ url_for('agenda.listar_agendas_usuario') }}" class="active">Agendamento</a>
             <a href="{{ url_for('dados.dados_usuario') }}">Dados</a>
             <a href="{{ url_for('usuario.logout') }}" class="btn-primary">Sair</a>
         </div>
@@ -75,34 +75,58 @@
 
     <!-- Conteúdo principal -->
     <div class="detalhes-container">
-        <h1>Detalhes da Sala</h1>
+        <h1>Detalhes do Agendamento</h1>
 
-        <div class="detalhes-item"><strong>Nome da Sala:</strong> {{ sala.nome }}</div>
+        <div class="detalhes-item"><strong>ID do Agendamento:</strong> {{ agenda.id }}</div>
 
-        <div class="detalhes-item"><strong>Segunda a Sexta:</strong> 
-            {{ sala.horario_seg_inicio }} às {{ sala.horario_seg_fim }}
-        </div>
-
-        <div class="detalhes-item"><strong>Sábado:</strong> 
-            {{ sala.horario_sab_inicio }} às {{ sala.horario_sab_fim }}
-        </div>
-
-        <div class="detalhes-item"><strong>Domingo:</strong> 
-            {% if sala.horario_dom_inicio == "00:00" and sala.horario_dom_fim == "00:00" %}
-                Fechada
+        <div class="detalhes-item"><strong>Cirurgia:</strong> 
+            {% if cirurgia %}
+                {{ cirurgia.tipo }} (ID: {{ cirurgia.id }})
             {% else %}
-                {{ sala.horario_dom_inicio }} às {{ sala.horario_dom_fim }}
+                —
+            {% endif %}
+        </div>
+
+        <div class="detalhes-item"><strong>Sala:</strong> 
+            {% if sala %}
+                {{ sala.nome }}
+            {% else %}
+                —
+            {% endif %}
+        </div>
+
+        <div class="detalhes-item"><strong>Data:</strong> 
+            {% if agenda.dia %}
+                {% if agenda.dia|string and "-" in agenda.dia %}
+                    {{ agenda.dia | datetimeformat("%d/%m/%Y") if datetimeformat is defined else agenda.dia }}
+                {% else %}
+                    {{ agenda.dia.strftime("%d/%m/%Y") }}
+                {% endif %}
+            {% else %}
+                —
+            {% endif %}
+        </div>
+
+        <div class="detalhes-item"><strong>Hora:</strong> 
+            {% if agenda.hora %}
+                {% if agenda.hora|string %}
+                    {{ agenda.hora[:5] }}
+                {% else %}
+                    {{ agenda.hora.strftime("%H:%M") }}
+                {% endif %}
+            {% else %}
+                —
             {% endif %}
         </div>
 
         <div class="botoes-acoes">
-            <a href="{{ url_for('sala.listar_salas_usuario') }}" class="btn btn-voltar">
+            <a href="{{ url_for('agenda.listar_agendas_usuario') }}" class="btn btn-voltar">
                 <i class="fa-solid fa-arrow-left"></i> Voltar
             </a>
-            <a href="{{ url_for('sala.editar_sala', id=sala.id) }}" class="btn btn-editar">
+            <a href="{{ url_for('agenda.editar_agenda', id=agenda.id) }}" class="btn btn-editar">
                 <i class="fa-solid fa-pen"></i> Editar
             </a>
-            <a href="{{ url_for('sala.excluir_sala', id=sala.id) }}" class="btn btn-excluir" onclick="return confirm('Deseja realmente excluir esta sala?')">
+            <a href="{{ url_for('agenda.excluir_agenda', id=agenda.id) }}" class="btn btn-excluir" onclick="return confirm('Deseja realmente excluir este agendamento?')">
                 <i class="fa-solid fa-trash"></i> Excluir
             </a>
         </div>

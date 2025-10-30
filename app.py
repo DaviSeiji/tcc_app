@@ -2,6 +2,8 @@ from flask import Flask, render_template
 from routes.usuario import bp_usuario
 from routes.cirurgia import bp_cirurgia
 from routes.sala import bp_sala
+from routes.agenda import bp_agenda
+from routes.dados import bp_dados
 import os
 
 def create_app():
@@ -12,6 +14,8 @@ def create_app():
     app.register_blueprint(bp_usuario, url_prefix="/")
     app.register_blueprint(bp_cirurgia, url_prefix="/")
     app.register_blueprint(bp_sala, url_prefix="/")
+    app.register_blueprint(bp_agenda, url_prefix="/")
+    app.register_blueprint(bp_dados, url_prefix="/")
 
     # Página inicial genérica (pode redirecionar pra login)
     @app.route("/")
