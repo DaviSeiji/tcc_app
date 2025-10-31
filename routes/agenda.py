@@ -3,12 +3,14 @@ from models.agenda import Agenda
 from models.sala import Sala
 from models.cirurgia import Cirurgia
 from datetime import datetime, date, time
+from datetime import timedelta
 
 bp_agenda = Blueprint("agenda", __name__)
 
 # ------------------------------------
 # Listar todos os agendamentos
 # ------------------------------------
+
 @bp_agenda.route("/agendas")
 def listar_agendas_usuario():
     if "usuario_id" not in session:
@@ -16,14 +18,51 @@ def listar_agendas_usuario():
 
     agendas_objs = Agenda.listar_todos()
     agendas = []
+
+    hoje = date.today()
+    inicio_semana = hoje - timedelta(days=hoje.weekday())  # Segunda-feira
+    fim_semana = inicio_semana + timedelta(days=6)          # Domingo
+
+    # Cria os 7 dias fixos da semana
+    semana = []
+    for i in range(7):
+        dia = inicio_semana + timedelta(days=i)
+        semana.append({
+            "nome_dia": dia.strftime("%a").capitalize(),  # Seg, Ter, Qua...
+            "data": dia.strftime("%d/%m")
+        })
+
+    # Organiza as cirurgias por dia
+    agendas_semana = {}
     for a in agendas_objs:
-        # Busca informações adicionais da cirurgia e sala
+        dia_agenda = a.dia if isinstance(a.dia, date) else datetime.strptime(a.dia, "%Y-%m-%d").date()
+        if inicio_semana <= dia_agenda <= fim_semana:
+            data_str = dia_agenda.strftime("%d/%m")
+            cirurgia = Cirurgia.buscar_por_id(a.cirurgia_id)
+            sala = Sala.buscar_por_id(a.sala_id)
+
+            if data_str not in agendas_semana:
+                agendas_semana[data_str] = []
+
+            agendas_semana[data_str].append({
+                "id": a.id,
+                "cirurgia_id": cirurgia.id if cirurgia else "—",
+                "cirurgia_tipo": cirurgia.tipo if cirurgia else "—",
+                "sala": sala.nome if sala else "—",
+                "hora": (
+                    datetime.strptime(a.hora, "%H:%M:%S").strftime("%H:%M")
+                    if isinstance(a.hora, str) else
+                    a.hora.strftime("%H:%M") if a.hora else "—"
+                )
+            })
+
+
+        # Também adiciona todas no geral
         cirurgia = Cirurgia.buscar_por_id(a.cirurgia_id)
         sala = Sala.buscar_por_id(a.sala_id)
-
         agendas.append({
             "id": a.id,
-            "cirurgia": cirurgia.id if cirurgia else "—",
+            "cirurgia": cirurgia.tipo if cirurgia else "—",
             "sala": sala.nome if sala else "—",
             "dia": (
                 datetime.strptime(a.dia, "%Y-%m-%d").strftime("%d/%m/%Y")
@@ -37,8 +76,14 @@ def listar_agendas_usuario():
             )
         })
 
+    return render_template(
+        "agendas.html",
+        agendas=agendas,
+        agendas_semana=agendas_semana,
+        semana=semana
+    )
 
-    return render_template("agendas.html", agendas=agendas)
+
 
 
 # ------------------------------------

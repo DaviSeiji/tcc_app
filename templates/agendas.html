@@ -3,91 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agendas - Agenda Cirúrgica</title>
+    <title>Agendamentos - Agenda Cirúrgica</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .tabela-agendas {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 25px;
-            background-color: #1e1e1e;
+        body {
+            background-color: #121212;
             color: #f5f5f5;
-            border: 1px solid #333;
-            border-radius: 8px;
-            overflow: hidden;
+            font-family: 'Segoe UI', sans-serif;
         }
 
-        .tabela-agendas th, .tabela-agendas td {
-            border: 1px solid #333;
-            padding: 12px 15px;
+        .container {
+            max-width: 1100px;
+            margin: 40px auto;
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #fff;
+        }
+
+        /* Grade semanal */
+        .semana-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .dia-card {
+            background-color: #2a2a2a;
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        .dia-card h3 {
+            color: #3498db;
+            margin-bottom: 8px;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .cirurgia-item {
+            background-color: #3a3a3a;
+            border-radius: 8px;
+            padding: 6px;
+            margin: 6px 0;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        .cirurgia-item i {
+            color: #f1c40f;
+            margin-right: 5px;
+        }
+
+        /* Tabela */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+        }
+
+        th, td {
+            padding: 10px;
             text-align: center;
         }
 
-        .tabela-agendas th {
-            background-color: #2d2d2d;
-            font-weight: bold;
+        th {
+            background-color: #333;
         }
 
-        .tabela-agendas tr:nth-child(even) {
+        tr:nth-child(even) {
             background-color: #252525;
         }
 
-        .tabela-agendas tr:hover {
-            background-color: #333;
-            transition: 0.2s ease-in-out;
-        }
-
-        .btn-icon {
+        a.btn {
+            background-color: #3498db;
             color: #fff;
-            border: none;
-            padding: 8px 10px;
-            margin: 0 3px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: 0.3s;
+            padding: 8px 14px;
             text-decoration: none;
-            display: inline-flex;
-            align-items: center;
+            border-radius: 6px;
+            transition: 0.3s;
+        }
+
+        a.btn:hover { opacity: 0.8; }
+
+        /* Botão centralizado */
+        .add-agendamento {
+            display: flex;
             justify-content: center;
-            font-size: 0.95em;
-        }
-
-        .btn-view { background-color: #3498db; }   /* azul */
-        .btn-edit { background-color: #f1c40f; }   /* amarelo */
-        .btn-delete { background-color: #e74c3c; } /* vermelho */
-
-        .btn-icon:hover {
-            opacity: 0.85;
-            transform: scale(1.05);
-        }
-
-        .sem-agendas {
-            margin-top: 30px;
-            font-size: 1.1em;
-            color: #bbb;
+            margin-top: 25px;
         }
 
         .btn-link {
-            color: #3498db;
-            text-decoration: none;
+            background-color: #3498db;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
             font-weight: bold;
-            margin-bottom: 15px;
-            display: inline-block;
+            text-decoration: none;
+            transition: 0.3s;
         }
 
         .btn-link:hover {
-            text-decoration: underline;
-        }
-
-        h1 {
-            margin-bottom: 10px;
+            background-color: #2980b9;
         }
     </style>
 </head>
 <body>
-    <!-- Navbar -->
+
     <nav class="navbar">
         <div class="logo">
             <a href="{{ url_for('usuario.home') }}" class="logo-link">Agenda Cirúrgica</a>
@@ -101,53 +136,65 @@
         </div>
     </nav>
 
-    <!-- Conteúdo -->
-    <section class="hero">
-        <div class="hero-content">
-            <h1>Minhas Agendas</h1>
-
-            <a href="{{ url_for('agenda.adicionar_agenda') }}" class="btn-link">
-                + Agendar Manualmente
-            </a>
-
-
-            {% if agendas %}
-                <table class="tabela-agendas">
-                    <thead>
-                        <tr>
-                            <th>Cirurgia</th>
-                            <th>Sala</th>
-                            <th>Dia</th>
-                            <th>Hora</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for a in agendas %}
-                        <tr>
-                            <td>{{ a.cirurgia }}</td>
-                            <td>{{ a.sala }}</td>
-                            <td>{{ a.dia }}</td>
-                            <td>{{ a.hora }}</td>
-                            <td>
-                                <a href="{{ url_for('agenda.ver_agenda', id=a.id) }}" class="btn-icon btn-view" title="Ver Detalhes">
-                                    <i class="fa-solid fa-eye"></i>
-                                </a>
-                                <a href="{{ url_for('agenda.editar_agenda', id=a.id) }}" class="btn-icon btn-edit" title="Editar">
-                                    <i class="fa-solid fa-pen"></i>
-                                </a>
-                                <a href="{{ url_for('agenda.excluir_agenda', id=a.id) }}" class="btn-icon btn-delete" title="Excluir" onclick="return confirm('Tem certeza que deseja excluir este agendamento?')">
-                                    <i class="fa-solid fa-trash"></i>
-                                </a>
-                            </td>
-                        </tr>
+    <div class="container">
+        <h1>Agenda da Semana</h1>
+        <div class="semana-grid">
+            {% for dia in semana %}
+                <div class="dia-card">
+                    <h3>{{ dia['nome_dia'] }}<br><small>{{ dia['data'] }}</small></h3>
+                    {% set cirurgias_dia = agendas_semana.get(dia['data'], []) %}
+                    {% if cirurgias_dia %}
+                        {% for c in cirurgias_dia %}
+                            <div class="cirurgia-item">
+                                {{ c.cirurgia_tipo }} | ID: {{ c.cirurgia_id }}<br>
+                                {{ c.hora }} | {{ c.sala }}
+                            </div>
                         {% endfor %}
-                    </tbody>
-                </table>
-                {% else %}
-                <p class="sem-agendas">Você ainda não possui agendas cadastradas.</p>
-            {% endif %}
+
+                    {% else %}
+                        <small>Sem cirurgias</small>
+                    {% endif %}
+                </div>
+            {% endfor %}
         </div>
-    </section>
+
+        <h2 style="margin-top: 40px;">Todos os Agendamentos</h2>
+
+        <div class="add-agendamento">
+            <a href="{{ url_for('agenda.adicionar_agenda') }}" class="btn-link">
+                + Adicionar Agendamento Manualmente
+            </a>
+        </div>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Cirurgia</th>
+                    <th>Sala</th>
+                    <th>Data</th>
+                    <th>Hora</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in agendas %}
+                <tr>
+                    <td>{{ a.id }}</td>
+                    <td>{{ a.cirurgia }}</td>
+                    <td>{{ a.sala }}</td>
+                    <td>{{ a.dia }}</td>
+                    <td>{{ a.hora }}</td>
+                    <td>
+                        <a href="{{ url_for('agenda.ver_agenda', id=a.id) }}" class="btn"><i class="fa-solid fa-eye"></i></a>
+                        <a href="{{ url_for('agenda.editar_agenda', id=a.id) }}" class="btn" style="background-color:#f1c40f;color:#000;"><i class="fa-solid fa-pen"></i></a>
+                        <a href="{{ url_for('agenda.excluir_agenda', id=a.id) }}" class="btn" style="background-color:#e74c3c;" onclick="return confirm('Deseja realmente excluir?')"><i class="fa-solid fa-trash"></i></a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
 </body>
 </html>
