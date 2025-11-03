@@ -99,3 +99,30 @@ class Agenda:
                 id=row["id"]
             )
         return None
+
+    @staticmethod
+    def listar_por_usuario(usuario_id):
+        """
+        Lista todos os agendamentos associados às salas de um determinado usuário.
+        Faz join lógico via a tabela 'salas'.
+        """
+        # Primeiro, buscar todas as salas do usuário
+        res_salas = supabase.table("salas").select("id").eq("usuario_id", usuario_id).execute()
+        if not res_salas.data:
+            return []
+
+        sala_ids = [s["id"] for s in res_salas.data]
+
+        # Buscar agendamentos dessas salas
+        res = supabase.table("agenda").select("*").in_("sala_id", sala_ids).execute()
+        agendas = []
+        if res.data:
+            for row in res.data:
+                agendas.append(Agenda(
+                    cirurgia_id=row["cirurgia_id"],
+                    sala_id=row["sala_id"],
+                    dia=row["dia"],
+                    hora=row["hora"],
+                    id=row["id"]
+                ))
+        return agendas

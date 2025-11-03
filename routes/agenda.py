@@ -4,7 +4,7 @@ from models.sala import Sala
 from models.cirurgia import Cirurgia
 from datetime import datetime, date, time
 from datetime import timedelta
-
+from utils.grasp_rcl import agendar_automaticamente 
 bp_agenda = Blueprint("agenda", __name__)
 
 # ------------------------------------
@@ -200,3 +200,23 @@ def excluir_agenda(id):
         agenda.excluir()
 
     return redirect(url_for("agenda.listar_agendas_usuario"))
+
+# ------------------------------------
+# Agendamento automático
+# ------------------------------------
+
+@bp_agenda.route("/agendas/auto", methods=["POST"])
+def agendar_automatico():
+    if "usuario_id" not in session:
+        return redirect(url_for("usuario.pagina_login"))
+
+    usuario_id = session["usuario_id"]
+
+    try:
+        custo = agendar_automaticamente(usuario_id)
+        print(f"✅ Agendamento automático concluído. Custo total: {custo:.2f}")
+        return redirect(url_for("agenda.listar_agendas_usuario"))
+    except Exception as e:
+        print("⚠️ Erro no agendamento automático:", e)
+        return redirect(url_for("agenda.listar_agendas_usuario"))
+
