@@ -160,11 +160,11 @@
 
         <h2 style="margin-top: 40px;">Todos os Agendamentos</h2>
 
-        <form action="{{ url_for('agenda.agendar_automatico') }}" method="post" style="display:inline;">
-            <button type="submit" class="btn btn-primary">
-                🤖 Gerar Agendamento Automático
-            </button>
-        </form>
+        <div class="add-agendamento">
+            <a href="{{ url_for('agenda.agendar_automatico') }}" class="btn-link">
+                Gerar Agendamento Automático (Min: 2 cirurgias pendentes)
+            </a>
+        </div>
 
 
         <div class="add-agendamento">
