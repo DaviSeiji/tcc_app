@@ -16,7 +16,10 @@ def listar_agendas_usuario():
     if "usuario_id" not in session:
         return redirect(url_for("usuario.pagina_login"))
 
-    agendas_objs = Agenda.listar_todos()
+    usuario_id = session["usuario_id"]
+
+    agendas_objs = Agenda.listar_por_usuario(usuario_id)
+
     agendas = []
 
     hoje = date.today()
