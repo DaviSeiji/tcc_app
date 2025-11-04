@@ -101,7 +101,7 @@ def adicionar_agenda():
 
     cirurgias = [
         c for c in Cirurgia.listar_por_usuario(session["usuario_id"])
-        if c.status == "pendente"
+        if c.status == "pendente" or c.status == "Pendente"
     ]
 
 
@@ -163,28 +163,20 @@ def editar_agenda(id):
         return redirect(url_for("agenda.listar_agendas_usuario"))
 
     salas = Sala.listar_por_usuario(session["usuario_id"])
-    cirurgias = Cirurgia.listar_por_usuario(session["usuario_id"])
 
     if request.method == "POST":
-        agenda.cirurgia_id = request.form.get("cirurgia_id")
         agenda.sala_id = request.form.get("sala_id")
         agenda.dia = request.form.get("dia")
         agenda.hora = request.form.get("hora")
 
-        if not all([agenda.cirurgia_id, agenda.sala_id, agenda.dia, agenda.hora]):
+        if not all([agenda.sala_id, agenda.dia, agenda.hora]):
             return redirect(url_for("agenda.editar_agenda", id=id))
 
         agenda.salvar()
 
-        # Garante que a cirurgia vinculada fique com status "agendada"
-        cirurgia = Cirurgia.buscar_por_id(agenda.cirurgia_id)
-        if cirurgia:
-            cirurgia.status = "agendada"
-            cirurgia.salvar()
-
         return redirect(url_for("agenda.listar_agendas_usuario"))
 
-    return render_template("editar_agenda.html", agenda=agenda, salas=salas, cirurgias=cirurgias)
+    return render_template("editar_agenda.html", agenda=agenda, salas=salas)
 
 
 # ------------------------------------

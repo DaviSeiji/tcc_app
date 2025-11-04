@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Agendamento - Agenda Cirúrgica</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        select, input[type="date"], input[type="time"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            background: #222;
+            color: white;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        h3 {
+            margin-bottom: 10px;
+        }
+
+        .info-padrao {
+            color: #ccc;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .formulario {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">
+            <a href="{{ url_for('usuario.home') }}" class="logo-link">Agenda Cirúrgica</a>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('cirurgia.listar_cirurgias_usuario') }}">Cirurgias</a>
+            <a href="{{ url_for('sala.listar_salas_usuario') }}">Salas</a>
+            <a href="{{ url_for('agenda.listar_agendas_usuario') }}">Agendamento</a>
+            <a href="{{ url_for('dados.dados_usuario') }}">Dados</a>
+            <a href="{{ url_for('usuario.logout') }}" class="btn-primary">Sair</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Editar Agendamento</h1>
+
+            <form action="{{ url_for('agenda.editar_agenda', id=agenda.id) }}" method="POST" class="formulario">
+
+                <label for="sala_id">Sala</label>
+                <select name="sala_id" id="sala_id" required>
+                    {% for s in salas %}
+                        <option value="{{ s.id }}" {% if s.id == agenda.sala_id %}selected{% endif %}>
+                            {{ s.nome }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <label for="dia">Data</label>
+                <input 
+                    type="date" 
+                    name="dia" 
+                    id="dia" 
+                    value="{{ agenda.dia if agenda.dia.__class__.__name__ == 'str' else agenda.dia.strftime('%Y-%m-%d') }}" 
+                    required
+                >
+
+                <label for="hora">Hora</label>
+                <input 
+                    type="time" 
+                    name="hora" 
+                    id="hora" 
+                    value="{{ agenda.hora if agenda.hora.__class__.__name__ == 'str' else agenda.hora.strftime('%H:%M') }}" 
+                    required
+                >
+
+                <button type="submit" class="btn-primary">Salvar Alterações</button>
+            </form>
+
+            <a href="{{ url_for('agenda.listar_agendas_usuario') }}" class="btn-link">← Voltar para Agendamentos</a>
+        </div>
+    </section>
+</body>
+</html>
